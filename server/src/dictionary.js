@@ -2,7 +2,7 @@ const path = require("path");
 const fs = require("fs");
 const Database = require("better-sqlite3");
 
-const dataDir = path.resolve(__dirname, "..", "data");
+const dataDir = process.env.DATA_DIR || path.resolve(__dirname, "..", "data");
 fs.mkdirSync(dataDir, { recursive: true });
 
 const db = new Database(path.join(dataDir, "words.db"));

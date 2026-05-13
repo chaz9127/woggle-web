@@ -22,6 +22,9 @@ const suggestLimiter = rateLimit({
 
 const app = express();
 
+// Behind Render's proxy — trust one hop so req.ip reflects the real client.
+app.set("trust proxy", 1);
+
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: "http://localhost:5173" }));
 app.use(morgan("combined"));
