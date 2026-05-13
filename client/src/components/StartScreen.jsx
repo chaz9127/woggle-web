@@ -81,7 +81,7 @@ export default function StartScreen({
           </>
         )}
 
-        {hasPlayedCookie && (
+        {hasPlayedCookie && import.meta.env.DEV && (
           <button
             type="button"
             className="btn btn--ghost start__reset"
