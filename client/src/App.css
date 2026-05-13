@@ -366,6 +366,10 @@
   font-variant-numeric: tabular-nums;
 }
 .summary__empty { color: var(--muted); }
+.summary__share {
+  width: 100%;
+  margin-top: 14px;
+}
 
 /* Start screen */
 .start {

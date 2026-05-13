@@ -1,6 +1,25 @@
+import { useState } from 'react';
 import Modal from './Modal';
+import { buildShareText, copyToClipboard } from '../utils/share';
 
-export default function SummaryModal({ open, onClose, foundWords, totals }) {
+export default function SummaryModal({
+  open,
+  onClose,
+  foundWords,
+  totals,
+  board,
+  dateStr,
+  theme,
+}) {
+  const [shareStatus, setShareStatus] = useState('');
+
+  const handleShare = async () => {
+    const text = buildShareText({ board, foundWords, totals, dateStr, theme });
+    const ok = await copyToClipboard(text);
+    setShareStatus(ok ? 'Copied!' : 'Copy failed');
+    setTimeout(() => setShareStatus(''), 1800);
+  };
+
   return (
     <Modal open={open} title="Time's Up!" onClose={onClose}>
       <div className="summary">
@@ -21,6 +40,13 @@ export default function SummaryModal({ open, onClose, foundWords, totals }) {
             ))}
           </ul>
         )}
+        <button
+          type="button"
+          className="btn btn--primary summary__share"
+          onClick={handleShare}
+        >
+          {shareStatus || 'Share'}
+        </button>
       </div>
     </Modal>
   );

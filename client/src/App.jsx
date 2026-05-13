@@ -108,6 +108,9 @@ export default function App() {
         onClose={dismissSummary}
         foundWords={foundWords}
         totals={totals}
+        board={board}
+        dateStr={dateStr}
+        theme={theme}
       />
     </div>
   );
