@@ -62,7 +62,7 @@ export default function App() {
             <div className="date-row">Daily puzzle · {dateStr}</div>
 
             <div className="scoreboard">
-              <div><span>Scrabble</span><strong>{totals.scrabble}</strong></div>
+              <div><span>Score</span><strong>{totals.scrabble}</strong></div>
               <div><span>Words</span><strong>{foundWords.length}</strong></div>
             </div>
 

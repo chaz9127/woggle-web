@@ -6,7 +6,7 @@ export default function SummaryModal({ open, onClose, foundWords, totals }) {
       <div className="summary">
         <div className="summary__stats">
           <div><span>Words</span><strong>{foundWords.length}</strong></div>
-          <div><span>Scrabble</span><strong>{totals.scrabble}</strong></div>
+          <div><span>Score</span><strong>{totals.scrabble}</strong></div>
         </div>
         <h3>Words</h3>
         {foundWords.length === 0 ? (
