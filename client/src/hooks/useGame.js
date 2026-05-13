@@ -1,26 +1,41 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { generateBoard, isAdjacent } from "../utils/board";
 import { todayDateString } from "../utils/random";
-import { boggleScore, scrabbleScore, tilesToWord, tilesToLetterCount } from "../utils/scoring";
+import { scrabbleScore, tilesToWord, tilesToLetterCount } from "../utils/scoring";
 import { checkWord } from "./useDictionary";
+import { getPlayedCookie, setPlayedCookie, clearPlayedCookie } from "../utils/cookies";
+
+export const GAME_DURATION_SECONDS = 120;
 
 export function useGame() {
   const dateStr = useMemo(() => todayDateString(), []);
   const board = useMemo(() => generateBoard(dateStr), [dateStr]);
 
+  const [phase, setPhase] = useState(() =>
+    getPlayedCookie() === dateStr ? "locked" : "idle"
+  );
   const [selection, setSelection] = useState([]);
   const [foundWords, setFoundWords] = useState([]);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [startTime] = useState(() => Date.now());
-  const [elapsed, setElapsed] = useState(0);
-  const [finished, setFinished] = useState(false);
+  const [startTime, setStartTime] = useState(null);
+  const [remaining, setRemaining] = useState(GAME_DURATION_SECONDS);
 
   useEffect(() => {
-    if (finished) return;
-    const id = setInterval(() => setElapsed(Math.floor((Date.now() - startTime) / 1000)), 1000);
+    if (phase !== "playing" || startTime == null) return;
+    const tick = () => {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const left = Math.max(0, GAME_DURATION_SECONDS - elapsed);
+      setRemaining(left);
+      if (left === 0) {
+        setPhase("done");
+        setPlayedCookie(dateStr);
+      }
+    };
+    tick();
+    const id = setInterval(tick, 250);
     return () => clearInterval(id);
-  }, [startTime, finished]);
+  }, [phase, startTime, dateStr]);
 
   useEffect(() => {
     if (!error) return;
@@ -46,7 +61,7 @@ export function useGame() {
   }, []);
 
   const submitWord = useCallback(async () => {
-    if (submitting) return;
+    if (submitting || phase !== "playing") return;
     const word = tilesToWord(selection);
     const letterCount = tilesToLetterCount(selection);
     if (letterCount < 3) {
@@ -67,32 +82,61 @@ export function useGame() {
     const entry = {
       word,
       letterCount,
-      boggle: boggleScore(letterCount),
       scrabble: scrabbleScore(selection),
     };
     setFoundWords((prev) => [entry, ...prev]);
     setSelection([]);
-  }, [selection, foundWords, submitting]);
+  }, [selection, foundWords, submitting, phase]);
 
-  const totals = useMemo(() => foundWords.reduce((acc, w) => ({ boggle: acc.boggle + w.boggle, scrabble: acc.scrabble + w.scrabble }), { boggle: 0, scrabble: 0 }), [foundWords]);
+  const totals = useMemo(
+    () =>
+      foundWords.reduce(
+        (acc, w) => ({ scrabble: acc.scrabble + w.scrabble }),
+        { scrabble: 0 }
+      ),
+    [foundWords]
+  );
 
-  const finish = useCallback(() => setFinished(true), []);
-  const resumeGame = useCallback(() => setFinished(false), []);
+  const startGame = useCallback(() => {
+    setSelection([]);
+    setFoundWords([]);
+    setError("");
+    setRemaining(GAME_DURATION_SECONDS);
+    setStartTime(Date.now());
+    setPhase("playing");
+  }, []);
+
+  const dismissSummary = useCallback(() => {
+    setPhase("locked");
+  }, []);
+
+  const resetCookie = useCallback(() => {
+    clearPlayedCookie();
+    setPhase("idle");
+    setSelection([]);
+    setFoundWords([]);
+    setRemaining(GAME_DURATION_SECONDS);
+    setStartTime(null);
+  }, []);
+
+  const hasPlayedCookie = phase === "locked" || getPlayedCookie() === dateStr;
 
   return {
     dateStr,
     board,
+    phase,
     selection,
     foundWords,
     error,
     submitting,
-    elapsed,
-    finished,
+    remaining,
     totals,
+    hasPlayedCookie,
     selectTile,
     clearSelection,
     submitWord,
-    finish,
-    resumeGame,
+    startGame,
+    dismissSummary,
+    resetCookie,
   };
 }

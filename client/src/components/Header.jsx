@@ -1,10 +1,18 @@
-export default function Header({ theme, onToggleTheme, onOpenRules, elapsed }) {
-  const mm = String(Math.floor(elapsed / 60)).padStart(1, '0');
-  const ss = String(elapsed % 60).padStart(2, '0');
+export default function Header({ theme, onToggleTheme, onOpenRules, remaining, showTimer }) {
+  const mm = String(Math.floor((remaining ?? 0) / 60)).padStart(1, "0");
+  const ss = String((remaining ?? 0) % 60).padStart(2, "0");
+  const low = showTimer && remaining <= 10;
   return (
     <header className="header">
       <h1 className="header__title">Woggle</h1>
-      <div className="header__timer" aria-label="Elapsed time">{mm}:{ss}</div>
+      <div
+        className={`header__timer ${low ? "header__timer--low" : ""}`}
+        aria-label="Time remaining"
+        aria-hidden={!showTimer}
+        style={{ visibility: showTimer ? "visible" : "hidden" }}
+      >
+        {mm}:{ss}
+      </div>
       <div className="header__actions">
         <button
           type="button"
@@ -19,10 +27,10 @@ export default function Header({ theme, onToggleTheme, onOpenRules, elapsed }) {
           type="button"
           className="icon-btn"
           onClick={onToggleTheme}
-          aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
           title="Toggle theme"
         >
-          {theme === 'dark' ? '☀' : '☾'}
+          {theme === "dark" ? "☀" : "☾"}
         </button>
       </div>
     </header>

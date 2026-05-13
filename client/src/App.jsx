@@ -4,6 +4,7 @@ import Board from './components/Board';
 import WordList from './components/WordList';
 import RulesModal from './components/RulesModal';
 import SummaryModal from './components/SummaryModal';
+import StartScreen from './components/StartScreen';
 import { useGame } from './hooks/useGame';
 import { useTheme } from './hooks/useTheme';
 import { tilesToWord } from './utils/scoring';
@@ -14,22 +15,25 @@ export default function App() {
   const {
     dateStr,
     board,
+    phase,
     selection,
     foundWords,
     error,
     submitting,
-    elapsed,
-    finished,
+    remaining,
     totals,
+    hasPlayedCookie,
     selectTile,
     clearSelection,
     submitWord,
-    finish,
-    resumeGame,
+    startGame,
+    dismissSummary,
+    resetCookie,
   } = useGame();
 
   const [rulesOpen, setRulesOpen] = useState(false);
   const currentWord = tilesToWord(selection);
+  const showTimer = phase === 'playing' || phase === 'done';
 
   return (
     <div className="app">
@@ -37,61 +41,71 @@ export default function App() {
         theme={theme}
         onToggleTheme={toggleTheme}
         onOpenRules={() => setRulesOpen(true)}
-        elapsed={elapsed}
+        remaining={remaining}
+        showTimer={showTimer}
       />
       <main className="main">
-        <div className="date-row">Daily puzzle · {dateStr}</div>
+        {phase === 'idle' || phase === 'locked' ? (
+          <StartScreen
+            dateStr={dateStr}
+            phase={phase}
+            hasPlayedCookie={hasPlayedCookie}
+            onStart={startGame}
+            onResetCookie={resetCookie}
+            totals={totals}
+            foundWords={foundWords}
+          />
+        ) : (
+          <>
+            <div className="date-row">Daily puzzle · {dateStr}</div>
 
-        <div className="scoreboard">
-          <div><span>Boggle</span><strong>{totals.boggle}</strong></div>
-          <div><span>Scrabble</span><strong>{totals.scrabble}</strong></div>
-          <div><span>Words</span><strong>{foundWords.length}</strong></div>
-        </div>
+            <div className="scoreboard">
+              <div><span>Scrabble</span><strong>{totals.scrabble}</strong></div>
+              <div><span>Words</span><strong>{foundWords.length}</strong></div>
+            </div>
 
-        <div className={`current-word ${error ? 'current-word--error' : ''}`}>
-          {error
-            ? error
-            : currentWord || (
-                <span className="current-word__placeholder">
-                  Tap letters to build a word
-                </span>
-              )}
-        </div>
+            <div className={`current-word ${error ? 'current-word--error' : ''}`}>
+              {error
+                ? error
+                : currentWord || (
+                    <span className="current-word__placeholder">
+                      Tap letters to build a word
+                    </span>
+                  )}
+            </div>
 
-        <Board board={board} selection={selection} onSelect={selectTile} />
+            <Board board={board} selection={selection} onSelect={selectTile} />
 
-        <div className="controls">
-          <button
-            type="button"
-            className="btn btn--ghost"
-            onClick={clearSelection}
-            disabled={selection.length === 0 || submitting}
-          >
-            Clear
-          </button>
-          <button
-            type="button"
-            className="btn btn--primary"
-            onClick={submitWord}
-            disabled={selection.length === 0 || submitting}
-          >
-            {submitting ? 'Checking…' : 'Submit'}
-          </button>
-          <button type="button" className="btn btn--ghost" onClick={finish}>
-            Finish
-          </button>
-        </div>
+            <div className="controls">
+              <button
+                type="button"
+                className="btn btn--ghost"
+                onClick={clearSelection}
+                disabled={selection.length === 0 || submitting || phase !== 'playing'}
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={submitWord}
+                disabled={selection.length === 0 || submitting || phase !== 'playing'}
+              >
+                {submitting ? 'Checking…' : 'Submit'}
+              </button>
+            </div>
 
-        <WordList words={foundWords} />
+            <WordList words={foundWords} />
+          </>
+        )}
       </main>
 
       <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
       <SummaryModal
-        open={finished}
-        onClose={resumeGame}
+        open={phase === 'done'}
+        onClose={dismissSummary}
         foundWords={foundWords}
         totals={totals}
-        elapsed={elapsed}
       />
     </div>
   );
