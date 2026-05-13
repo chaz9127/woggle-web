@@ -1,122 +1,98 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from 'react';
+import Header from './components/Header';
+import Board from './components/Board';
+import WordList from './components/WordList';
+import RulesModal from './components/RulesModal';
+import SummaryModal from './components/SummaryModal';
+import { useGame } from './hooks/useGame';
+import { useTheme } from './hooks/useTheme';
+import { tilesToWord } from './utils/scoring';
+import './App.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const { theme, toggle: toggleTheme } = useTheme();
+  const {
+    dateStr,
+    board,
+    selection,
+    foundWords,
+    error,
+    submitting,
+    elapsed,
+    finished,
+    totals,
+    selectTile,
+    clearSelection,
+    submitWord,
+    finish,
+    resumeGame,
+  } = useGame();
+
+  const [rulesOpen, setRulesOpen] = useState(false);
+  const currentWord = tilesToWord(selection);
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app">
+      <Header
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        onOpenRules={() => setRulesOpen(true)}
+        elapsed={elapsed}
+      />
+      <main className="main">
+        <div className="date-row">Daily puzzle · {dateStr}</div>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+        <div className="scoreboard">
+          <div><span>Boggle</span><strong>{totals.boggle}</strong></div>
+          <div><span>Scrabble</span><strong>{totals.scrabble}</strong></div>
+          <div><span>Words</span><strong>{foundWords.length}</strong></div>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        <div className={`current-word ${error ? 'current-word--error' : ''}`}>
+          {error
+            ? error
+            : currentWord || (
+                <span className="current-word__placeholder">
+                  Tap letters to build a word
+                </span>
+              )}
+        </div>
+
+        <Board board={board} selection={selection} onSelect={selectTile} />
+
+        <div className="controls">
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={clearSelection}
+            disabled={selection.length === 0 || submitting}
+          >
+            Clear
+          </button>
+          <button
+            type="button"
+            className="btn btn--primary"
+            onClick={submitWord}
+            disabled={selection.length === 0 || submitting}
+          >
+            {submitting ? 'Checking…' : 'Submit'}
+          </button>
+          <button type="button" className="btn btn--ghost" onClick={finish}>
+            Finish
+          </button>
+        </div>
+
+        <WordList words={foundWords} />
+      </main>
+
+      <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
+      <SummaryModal
+        open={finished}
+        onClose={resumeGame}
+        foundWords={foundWords}
+        totals={totals}
+        elapsed={elapsed}
+      />
+    </div>
+  );
 }
-
-export default App
