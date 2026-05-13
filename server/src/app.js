@@ -1,3 +1,4 @@
+require("dotenv").config();
 const path = require("path");
 const express = require("express");
 const helmet = require("helmet");
@@ -5,6 +6,11 @@ const cors = require("cors");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
 const { handleWordLookup, handleWordSuggest } = require("./dictionary");
+const {
+  buildAuthRouter,
+  buildSessionMiddleware,
+  passport,
+} = require("./auth");
 
 const lookupLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -26,14 +32,19 @@ const app = express();
 app.set("trust proxy", 1);
 
 app.use(helmet({ contentSecurityPolicy: false }));
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(morgan("combined"));
 app.use(express.json());
+
+app.use(buildSessionMiddleware());
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+app.use("/api/auth", buildAuthRouter());
 app.get("/api/word/:word", lookupLimiter, handleWordLookup);
 app.post("/api/word/:word/suggest", suggestLimiter, handleWordSuggest);
 

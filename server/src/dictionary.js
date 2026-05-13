@@ -1,12 +1,5 @@
-const path = require("path");
-const fs = require("fs");
-const Database = require("better-sqlite3");
+const { db } = require("./db");
 
-const dataDir = process.env.DATA_DIR || path.resolve(__dirname, "..", "data");
-fs.mkdirSync(dataDir, { recursive: true });
-
-const db = new Database(path.join(dataDir, "words.db"));
-db.pragma("journal_mode = WAL");
 db.exec(`
   CREATE TABLE IF NOT EXISTS words (
     word TEXT PRIMARY KEY,

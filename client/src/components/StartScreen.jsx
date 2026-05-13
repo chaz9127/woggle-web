@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { buildShareText, copyToClipboard } from "../utils/share";
+import { useAuth } from "../auth/AuthContext";
 
 export default function StartScreen({
   dateStr,
@@ -14,6 +15,8 @@ export default function StartScreen({
 }) {
   const locked = phase === "locked";
   const [shareStatus, setShareStatus] = useState("");
+  const { user } = useAuth();
+  const isPrivileged = user?.role === "admin" || user?.role === "tester";
 
   const sharePreview =
     locked && board
@@ -81,7 +84,7 @@ export default function StartScreen({
           </>
         )}
 
-        {hasPlayedCookie && import.meta.env.DEV && (
+        {hasPlayedCookie && (import.meta.env.DEV || isPrivileged) && (
           <button
             type="button"
             className="btn btn--ghost start__reset"

@@ -5,6 +5,9 @@ import WordList from './components/WordList';
 import RulesModal from './components/RulesModal';
 import SummaryModal from './components/SummaryModal';
 import StartScreen from './components/StartScreen';
+import AuthModal from './auth/AuthModal';
+import ChooseUsername from './auth/ChooseUsername';
+import { useAuth } from './auth/AuthContext';
 import { useGame } from './hooks/useGame';
 import { useTheme } from './hooks/useTheme';
 import { tilesToWord } from './utils/scoring';
@@ -12,6 +15,7 @@ import './App.css';
 
 export default function App() {
   const { theme, toggle: toggleTheme } = useTheme();
+  const { user, loading: authLoading } = useAuth();
   const {
     dateStr,
     board,
@@ -35,8 +39,16 @@ export default function App() {
   } = useGame();
 
   const [rulesOpen, setRulesOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
   const currentWord = tilesToWord(selection);
   const showTimer = phase === 'playing' || phase === 'done';
+
+  if (!authLoading && user && !user.username) {
+    return <ChooseUsername />;
+  }
+  if (!authLoading && window.location.pathname === '/choose-username' && user?.username) {
+    window.history.replaceState({}, '', '/');
+  }
 
   return (
     <div className="app">
@@ -44,6 +56,7 @@ export default function App() {
         theme={theme}
         onToggleTheme={toggleTheme}
         onOpenRules={() => setRulesOpen(true)}
+        onOpenAuth={() => setAuthOpen(true)}
         remaining={remaining}
         showTimer={showTimer}
       />
@@ -123,6 +136,7 @@ export default function App() {
       </main>
 
       <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
       <SummaryModal
         open={phase === 'done'}
         onClose={dismissSummary}

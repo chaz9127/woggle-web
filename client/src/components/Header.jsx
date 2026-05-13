@@ -1,7 +1,25 @@
-export default function Header({ theme, onToggleTheme, onOpenRules, remaining, showTimer }) {
+import { useState, useRef, useEffect } from 'react';
+import { useAuth } from '../auth/AuthContext';
+
+export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, remaining, showTimer }) {
   const mm = String(Math.floor((remaining ?? 0) / 60)).padStart(1, "0");
   const ss = String((remaining ?? 0) % 60).padStart(2, "0");
   const low = showTimer && remaining <= 10;
+  const { user, logout } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDoc = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [menuOpen]);
+
+  const initial = (user?.username || user?.email || '?').slice(0, 1).toUpperCase();
+
   return (
     <header className="header">
       <h1 className="header__title">Woggle</h1>
@@ -32,6 +50,42 @@ export default function Header({ theme, onToggleTheme, onOpenRules, remaining, s
         >
           {theme === "dark" ? "☀" : "☾"}
         </button>
+        {user ? (
+          <div className="header__account" ref={menuRef}>
+            <button
+              type="button"
+              className="icon-btn icon-btn--avatar"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label="Account menu"
+              title={user.username || user.email}
+            >
+              {initial}
+            </button>
+            {menuOpen && (
+              <div className="header__menu" role="menu">
+                <div className="header__menu-user">
+                  <strong>{user.username || '(no username)'}</strong>
+                  <span>{user.email}</span>
+                </div>
+                <button
+                  type="button"
+                  className="header__menu-item"
+                  onClick={() => { setMenuOpen(false); logout(); }}
+                >
+                  Sign out
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="btn btn--ghost btn--inline"
+            onClick={onOpenAuth}
+          >
+            Sign in
+          </button>
+        )}
       </div>
     </header>
   );
