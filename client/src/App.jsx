@@ -54,6 +54,8 @@ export default function App() {
             onResetCookie={resetCookie}
             totals={totals}
             foundWords={foundWords}
+            board={board}
+            theme={theme}
           />
         ) : (
           <>

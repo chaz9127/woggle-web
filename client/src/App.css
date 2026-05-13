@@ -433,3 +433,16 @@
   font-size: 20px;
   font-variant-numeric: tabular-nums;
 }
+.start__share-preview {
+  margin: 4px 0 0;
+  padding: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-size: 18px;
+  line-height: 1.15;
+  white-space: pre;
+  text-align: center;
+  overflow-x: auto;
+}

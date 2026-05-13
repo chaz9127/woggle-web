@@ -6,16 +6,48 @@ import { checkWord } from "./useDictionary";
 import { getPlayedCookie, setPlayedCookie, clearPlayedCookie } from "../utils/cookies";
 
 export const GAME_DURATION_SECONDS = 120;
+const RESULT_KEY_PREFIX = "woggle-result-";
+
+function loadResult(dateStr) {
+  try {
+    const raw = localStorage.getItem(RESULT_KEY_PREFIX + dateStr);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed?.foundWords) ? parsed.foundWords : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveResult(dateStr, foundWords) {
+  try {
+    localStorage.setItem(
+      RESULT_KEY_PREFIX + dateStr,
+      JSON.stringify({ foundWords })
+    );
+  } catch {
+    // ignore storage errors (quota / privacy mode)
+  }
+}
+
+function clearResult(dateStr) {
+  try {
+    localStorage.removeItem(RESULT_KEY_PREFIX + dateStr);
+  } catch {
+    // ignore
+  }
+}
 
 export function useGame() {
   const dateStr = useMemo(() => todayDateString(), []);
   const board = useMemo(() => generateBoard(dateStr), [dateStr]);
 
-  const [phase, setPhase] = useState(() =>
-    getPlayedCookie() === dateStr ? "locked" : "idle"
-  );
+  const initiallyLocked = getPlayedCookie() === dateStr;
+  const [phase, setPhase] = useState(() => (initiallyLocked ? "locked" : "idle"));
   const [selection, setSelection] = useState([]);
-  const [foundWords, setFoundWords] = useState([]);
+  const [foundWords, setFoundWords] = useState(() =>
+    initiallyLocked ? loadResult(dateStr) ?? [] : []
+  );
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [startTime, setStartTime] = useState(null);
@@ -42,6 +74,12 @@ export function useGame() {
     const id = setTimeout(() => setError(""), 1800);
     return () => clearTimeout(id);
   }, [error]);
+
+  useEffect(() => {
+    if (phase === "done" || phase === "locked") {
+      saveResult(dateStr, foundWords);
+    }
+  }, [phase, dateStr, foundWords]);
 
   const selectTile = useCallback((tile) => {
     setError("");
@@ -83,6 +121,7 @@ export function useGame() {
       word,
       letterCount,
       scrabble: scrabbleScore(selection),
+      tileIds: selection.map((t) => t.id),
     };
     setFoundWords((prev) => [entry, ...prev]);
     setSelection([]);
@@ -112,12 +151,13 @@ export function useGame() {
 
   const resetCookie = useCallback(() => {
     clearPlayedCookie();
+    clearResult(dateStr);
     setPhase("idle");
     setSelection([]);
     setFoundWords([]);
     setRemaining(GAME_DURATION_SECONDS);
     setStartTime(null);
-  }, []);
+  }, [dateStr]);
 
   const hasPlayedCookie = phase === "locked" || getPlayedCookie() === dateStr;
 

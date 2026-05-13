@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { buildShareText, copyToClipboard } from "../utils/share";
+
 export default function StartScreen({
   dateStr,
   phase,
@@ -6,8 +9,24 @@ export default function StartScreen({
   onResetCookie,
   totals,
   foundWords,
+  board,
+  theme,
 }) {
   const locked = phase === "locked";
+  const [shareStatus, setShareStatus] = useState("");
+
+  const sharePreview =
+    locked && board
+      ? buildShareText({ board, foundWords, totals, dateStr, theme })
+      : "";
+
+  const handleShare = async () => {
+    const text = buildShareText({ board, foundWords, totals, dateStr, theme });
+    const ok = await copyToClipboard(text);
+    setShareStatus(ok ? "Copied!" : "Copy failed");
+    setTimeout(() => setShareStatus(""), 1800);
+  };
+
   return (
     <div className="start">
       <div className="start__card">
@@ -32,6 +51,18 @@ export default function StartScreen({
                 </div>
               </div>
             )}
+            {sharePreview && (
+              <pre className="start__share-preview" aria-label="Share preview">
+                {sharePreview}
+              </pre>
+            )}
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={handleShare}
+            >
+              {shareStatus || "Share"}
+            </button>
           </>
         ) : (
           <>
