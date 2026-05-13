@@ -15,7 +15,10 @@ db.exec(`
   );
 `);
 
-const wordsCols = db.prepare("PRAGMA table_info(words)").all().map((c) => c.name);
+const wordsCols = db
+  .prepare("PRAGMA table_info(words)")
+  .all()
+  .map((c) => c.name);
 if (!wordsCols.includes("created_at")) {
   db.exec(`
     BEGIN;
@@ -58,9 +61,7 @@ db.exec(`
 
 const selectStmt = db.prepare("SELECT 1 FROM words WHERE word = ?");
 const insertStmt = db.prepare("INSERT OR IGNORE INTO words(word) VALUES (?)");
-const insertSuggestionStmt = db.prepare(
-  "INSERT OR IGNORE INTO word_suggestions(word) VALUES (?)"
-);
+const insertSuggestionStmt = db.prepare("INSERT OR IGNORE INTO word_suggestions(word) VALUES (?)");
 
 const UPSTREAM = "https://api.dictionaryapi.dev/api/v2/entries/en/";
 const TIMEOUT_MS = 4000;
@@ -81,7 +82,7 @@ async function fetchUpstream(word) {
 async function handleWordLookup(req, res) {
   const raw = req.params.word || "";
   const word = raw.toLowerCase();
-  if (!word || !/^[a-z]{1,20}$/.test(word)) {
+  if (!word || !/^[a-z]{1,16}$/.test(word)) {
     return res.status(404).end();
   }
 
@@ -108,7 +109,7 @@ async function handleWordLookup(req, res) {
 
 function handleWordSuggest(req, res) {
   const word = (req.params.word || "").toLowerCase();
-  if (!word || !/^[a-z]{1,20}$/.test(word)) {
+  if (!word || !/^[a-z]{1,16}$/.test(word)) {
     return res.status(400).end();
   }
   insertSuggestionStmt.run(word);
