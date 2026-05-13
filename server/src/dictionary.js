@@ -81,7 +81,7 @@ async function fetchUpstream(word) {
 async function handleWordLookup(req, res) {
   const raw = req.params.word || "";
   const word = raw.toLowerCase();
-  if (!word || !/^[a-z]+$/.test(word)) {
+  if (!word || !/^[a-z]{1,20}$/.test(word)) {
     return res.status(404).end();
   }
 
@@ -108,7 +108,7 @@ async function handleWordLookup(req, res) {
 
 function handleWordSuggest(req, res) {
   const word = (req.params.word || "").toLowerCase();
-  if (!word || !/^[a-z]+$/.test(word)) {
+  if (!word || !/^[a-z]{1,20}$/.test(word)) {
     return res.status(400).end();
   }
   insertSuggestionStmt.run(word);

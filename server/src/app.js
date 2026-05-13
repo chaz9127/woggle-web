@@ -3,7 +3,22 @@ const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
 const morgan = require("morgan");
+const rateLimit = require("express-rate-limit");
 const { handleWordLookup, handleWordSuggest } = require("./dictionary");
+
+const lookupLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 60,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+});
+
+const suggestLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 10,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+});
 
 const app = express();
 
@@ -16,8 +31,8 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-app.get("/api/word/:word", handleWordLookup);
-app.post("/api/word/:word/suggest", handleWordSuggest);
+app.get("/api/word/:word", lookupLimiter, handleWordLookup);
+app.post("/api/word/:word/suggest", suggestLimiter, handleWordSuggest);
 
 const clientDist = path.resolve(__dirname, "..", "..", "client", "dist");
 app.use(express.static(clientDist));
