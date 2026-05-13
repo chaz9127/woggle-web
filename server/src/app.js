@@ -3,6 +3,7 @@ const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
 const morgan = require("morgan");
+const { handleWordLookup, handleWordSuggest } = require("./dictionary");
 
 const app = express();
 
@@ -14,6 +15,9 @@ app.use(express.json());
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
+
+app.get("/api/word/:word", handleWordLookup);
+app.post("/api/word/:word/suggest", handleWordSuggest);
 
 const clientDist = path.resolve(__dirname, "..", "..", "client", "dist");
 app.use(express.static(clientDist));

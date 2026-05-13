@@ -128,6 +128,21 @@
   color: var(--muted);
   text-transform: none;
 }
+.current-word {
+  gap: 10px;
+}
+.current-word__suggested {
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  text-transform: none;
+  color: var(--muted);
+}
+.btn--inline {
+  padding: 4px 10px;
+  font-size: 13px;
+  line-height: 1;
+}
 
 /* Board */
 .board {

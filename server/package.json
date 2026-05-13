@@ -5,15 +5,17 @@
   "main": "src/app.js",
   "scripts": {
     "dev": "nodemon src/app.js",
-    "start": "node src/app.js"
+    "start": "node src/app.js",
+    "db": "node scripts/db-shell.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "better-sqlite3": "^12.10.0",
+    "cors": "^2.8.5",
     "express": "^4.18.2",
     "helmet": "^7.1.0",
-    "cors": "^2.8.5",
     "morgan": "^1.10.0"
   },
   "devDependencies": {

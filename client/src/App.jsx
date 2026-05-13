@@ -19,6 +19,8 @@ export default function App() {
     selection,
     foundWords,
     error,
+    invalidWord,
+    suggested,
     submitting,
     remaining,
     totals,
@@ -26,6 +28,7 @@ export default function App() {
     selectTile,
     clearSelection,
     submitWord,
+    suggestInvalid,
     startGame,
     dismissSummary,
     resetCookie,
@@ -67,13 +70,30 @@ export default function App() {
             </div>
 
             <div className={`current-word ${error ? 'current-word--error' : ''}`}>
-              {error
-                ? error
-                : currentWord || (
-                    <span className="current-word__placeholder">
-                      Tap letters to build a word
-                    </span>
+              {error ? (
+                <>
+                  <span>{error}</span>
+                  {invalidWord && (
+                    suggested ? (
+                      <span className="current-word__suggested">Suggested!</span>
+                    ) : (
+                      <button
+                        type="button"
+                        className="btn btn--ghost btn--inline"
+                        onClick={suggestInvalid}
+                      >
+                        Suggest?
+                      </button>
+                    )
                   )}
+                </>
+              ) : (
+                currentWord || (
+                  <span className="current-word__placeholder">
+                    Tap letters to build a word
+                  </span>
+                )
+              )}
             </div>
 
             <Board board={board} selection={selection} onSelect={selectTile} />

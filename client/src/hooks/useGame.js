@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { generateBoard, isAdjacent } from "../utils/board";
 import { todayDateString } from "../utils/random";
 import { scrabbleScore, tilesToWord, tilesToLetterCount } from "../utils/scoring";
-import { checkWord } from "./useDictionary";
+import { checkWord, suggestWord } from "./useDictionary";
 import { getPlayedCookie, setPlayedCookie, clearPlayedCookie } from "../utils/cookies";
 
 export const GAME_DURATION_SECONDS = 120;
@@ -49,6 +49,8 @@ export function useGame() {
     initiallyLocked ? loadResult(dateStr) ?? [] : []
   );
   const [error, setError] = useState("");
+  const [invalidWord, setInvalidWord] = useState("");
+  const [suggested, setSuggested] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [startTime, setStartTime] = useState(null);
   const [remaining, setRemaining] = useState(GAME_DURATION_SECONDS);
@@ -71,9 +73,10 @@ export function useGame() {
 
   useEffect(() => {
     if (!error) return;
+    if (invalidWord) return; // keep sticky so the user can click "Suggest?"
     const id = setTimeout(() => setError(""), 1800);
     return () => clearTimeout(id);
-  }, [error]);
+  }, [error, invalidWord]);
 
   useEffect(() => {
     if (phase === "done" || phase === "locked") {
@@ -83,6 +86,8 @@ export function useGame() {
 
   const selectTile = useCallback((tile) => {
     setError("");
+    setInvalidWord("");
+    setSuggested(false);
     setSelection((prev) => {
       if (prev.length === 0) return [tile];
       const last = prev[prev.length - 1];
@@ -96,6 +101,8 @@ export function useGame() {
   const clearSelection = useCallback(() => {
     setSelection([]);
     setError("");
+    setInvalidWord("");
+    setSuggested(false);
   }, []);
 
   const submitWord = useCallback(async () => {
@@ -115,6 +122,8 @@ export function useGame() {
     setSubmitting(false);
     if (!ok) {
       setError("Not a valid word");
+      setInvalidWord(word);
+      setSuggested(false);
       return;
     }
     const entry = {
@@ -125,7 +134,15 @@ export function useGame() {
     };
     setFoundWords((prev) => [entry, ...prev]);
     setSelection([]);
+    setInvalidWord("");
+    setSuggested(false);
   }, [selection, foundWords, submitting, phase]);
+
+  const suggestInvalid = useCallback(async () => {
+    if (!invalidWord || suggested) return;
+    setSuggested(true);
+    await suggestWord(invalidWord);
+  }, [invalidWord, suggested]);
 
   const totals = useMemo(
     () =>
@@ -140,6 +157,8 @@ export function useGame() {
     setSelection([]);
     setFoundWords([]);
     setError("");
+    setInvalidWord("");
+    setSuggested(false);
     setRemaining(GAME_DURATION_SECONDS);
     setStartTime(Date.now());
     setPhase("playing");
@@ -168,6 +187,8 @@ export function useGame() {
     selection,
     foundWords,
     error,
+    invalidWord,
+    suggested,
     submitting,
     remaining,
     totals,
@@ -175,6 +196,7 @@ export function useGame() {
     selectTile,
     clearSelection,
     submitWord,
+    suggestInvalid,
     startGame,
     dismissSummary,
     resetCookie,
