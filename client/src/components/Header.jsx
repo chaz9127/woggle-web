@@ -5,9 +5,22 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
   const mm = String(Math.floor((remaining ?? 0) / 60)).padStart(1, "0");
   const ss = String((remaining ?? 0) % 60).padStart(2, "0");
   const low = showTimer && remaining <= 10;
-  const { user, logout } = useAuth();
+  const { user, logout, updatePreferences } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [prefBusy, setPrefBusy] = useState(false);
   const menuRef = useRef(null);
+
+  const toggleClearAfterInvalid = async () => {
+    if (prefBusy) return;
+    setPrefBusy(true);
+    try {
+      await updatePreferences({ clearAfterInvalid: !user.clearAfterInvalid });
+    } catch {
+      // surface via UI in a future pass; ignore silently for now
+    } finally {
+      setPrefBusy(false);
+    }
+  };
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -67,6 +80,19 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
                   <strong>{user.username || '(no username)'}</strong>
                   <span>{user.email}</span>
                 </div>
+                <label className="header__menu-item header__menu-toggle">
+                  <span>Clear after invalid word</span>
+                  <span className={`switch ${user.clearAfterInvalid ? 'switch--on' : ''} ${prefBusy ? 'switch--busy' : ''}`}>
+                    <input
+                      type="checkbox"
+                      className="switch__input"
+                      checked={!!user.clearAfterInvalid}
+                      disabled={prefBusy}
+                      onChange={toggleClearAfterInvalid}
+                    />
+                    <span className="switch__thumb" />
+                  </span>
+                </label>
                 <button
                   type="button"
                   className="header__menu-item"

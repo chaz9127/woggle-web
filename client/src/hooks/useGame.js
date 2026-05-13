@@ -38,7 +38,7 @@ function clearResult(dateStr) {
   }
 }
 
-export function useGame() {
+export function useGame({ clearAfterInvalid = false } = {}) {
   const dateStr = useMemo(() => todayDateString(), []);
   const board = useMemo(() => generateBoard(dateStr), [dateStr]);
 
@@ -111,6 +111,7 @@ export function useGame() {
     const letterCount = tilesToLetterCount(selection);
     if (letterCount < 3) {
       setError("Too short!");
+      if (clearAfterInvalid) setSelection([]);
       return;
     }
     if (foundWords.some((w) => w.word === word)) {
@@ -124,6 +125,7 @@ export function useGame() {
       setError("Not a valid word");
       setInvalidWord(word);
       setSuggested(false);
+      if (clearAfterInvalid) setSelection([]);
       return;
     }
     const entry = {
@@ -136,7 +138,7 @@ export function useGame() {
     setSelection([]);
     setInvalidWord("");
     setSuggested(false);
-  }, [selection, foundWords, submitting, phase]);
+  }, [selection, foundWords, submitting, phase, clearAfterInvalid]);
 
   const suggestInvalid = useCallback(async () => {
     if (!invalidWord || suggested) return;

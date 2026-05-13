@@ -68,8 +68,17 @@ export function AuthProvider({ children }) {
     return user;
   }, []);
 
+  const updatePreferences = useCallback(async (prefs) => {
+    const { user } = await apiFetch('/api/auth/preferences', {
+      method: 'PATCH',
+      body: JSON.stringify(prefs),
+    });
+    setUser(user);
+    return user;
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, setUsername, refresh }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, setUsername, updatePreferences, refresh }}>
       {children}
     </AuthContext.Provider>
   );

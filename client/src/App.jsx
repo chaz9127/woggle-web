@@ -36,7 +36,7 @@ export default function App() {
     startGame,
     dismissSummary,
     resetCookie,
-  } = useGame();
+  } = useGame({ clearAfterInvalid: !!user?.clearAfterInvalid });
 
   const [rulesOpen, setRulesOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);

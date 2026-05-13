@@ -53,6 +53,9 @@ const updateUsername = db.prepare(
 const linkGoogleId = db.prepare(
   "UPDATE users SET google_id = ? WHERE id = ?"
 );
+const updateClearAfterInvalid = db.prepare(
+  "UPDATE users SET clear_after_invalid = ? WHERE id = ?"
+);
 
 function publicUser(u) {
   if (!u) return null;
@@ -219,6 +222,15 @@ function buildAuthRouter() {
       return res.status(409).json({ error: "Username taken" });
     }
     updateUsername.run(username, req.user.id);
+    res.json({ user: publicUser(findById.get(req.user.id)) });
+  });
+
+  router.patch("/preferences", requireAuth, (req, res) => {
+    const { clearAfterInvalid } = req.body || {};
+    if (typeof clearAfterInvalid !== "boolean") {
+      return res.status(400).json({ error: "clearAfterInvalid must be boolean" });
+    }
+    updateClearAfterInvalid.run(clearAfterInvalid ? 1 : 0, req.user.id);
     res.json({ user: publicUser(findById.get(req.user.id)) });
   });
 
