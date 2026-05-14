@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import AdminUsers from './AdminUsers';
+import AdminWordSuggestions from './AdminWordSuggestions';
 
 const NAV = [
   { key: 'users', label: 'Users', render: () => <AdminUsers /> },
+  { key: 'word-suggestions', label: 'Word Suggestions', render: () => <AdminWordSuggestions /> },
 ];
 
 export default function AdminPage() {

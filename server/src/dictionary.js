@@ -40,10 +40,38 @@ db.exec(`
 db.exec(`
   CREATE TABLE IF NOT EXISTS word_suggestions (
     word TEXT PRIMARY KEY,
-    approved INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'denied', 'approved')),
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
+`);
+
+const suggestionsCols = db
+  .prepare("PRAGMA table_info(word_suggestions)")
+  .all()
+  .map((c) => c.name);
+if (suggestionsCols.includes("approved") && !suggestionsCols.includes("status")) {
+  db.exec(`
+    BEGIN;
+    CREATE TABLE word_suggestions_new (
+      word TEXT PRIMARY KEY,
+      status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'denied', 'approved')),
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+    INSERT INTO word_suggestions_new (word, status, created_at, updated_at)
+      SELECT word,
+             CASE WHEN approved = 1 THEN 'approved' ELSE 'pending' END,
+             created_at,
+             updated_at
+      FROM word_suggestions;
+    DROP TABLE word_suggestions;
+    ALTER TABLE word_suggestions_new RENAME TO word_suggestions;
+    COMMIT;
+  `);
+}
+
+db.exec(`
   CREATE TRIGGER IF NOT EXISTS word_suggestions_updated_at
     AFTER UPDATE ON word_suggestions
     FOR EACH ROW

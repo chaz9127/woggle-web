@@ -752,7 +752,26 @@
   color: inherit;
   font: inherit;
 }
-.admin__muted { color: var(--muted); }
+.admin__muted { color: var(--muted); font-size: 12px; }
+.admin__status-select--pending { border-color: #e0a800; }
+.admin__status-select--approved { border-color: #2e7d32; }
+.admin__status-select--denied { border-color: var(--error); }
+.admin__th-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.admin__filter-select {
+  padding: 2px 4px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: inherit;
+  font: inherit;
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: 0;
+}
 .admin__empty,
 .admin__error {
   color: var(--muted);

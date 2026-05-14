@@ -86,3 +86,6 @@ jspm_packages/
 
 # SQLite data
 server/data/
+
+# MD files
+HELPER.md
