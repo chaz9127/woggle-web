@@ -9,6 +9,7 @@ import StartScreen from './components/StartScreen';
 import AuthModal from './auth/AuthModal';
 import ChooseUsername from './auth/ChooseUsername';
 import AdminPage from './admin/AdminPage';
+import NotFound from './components/NotFound';
 import { useAuth } from './auth/AuthContext';
 import { useGame } from './hooks/useGame';
 import { useGameStats } from './hooks/useGameStats';
@@ -83,8 +84,10 @@ export default function App() {
   if (!authLoading && window.location.pathname === '/choose-username' && user?.username) {
     window.history.replaceState({}, '', '/');
   }
-  if (!authLoading && user && window.location.pathname.startsWith('/admin')) {
-    return <AdminPage />;
+  if (window.location.pathname.startsWith('/admin')) {
+    if (authLoading) return null;
+    if (user?.role === 'admin') return <AdminPage />;
+    return <NotFound />;
   }
 
   return (

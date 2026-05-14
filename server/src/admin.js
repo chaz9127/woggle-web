@@ -12,10 +12,16 @@ const listUsers = db.prepare(`
 const updateRole = db.prepare("UPDATE users SET role = ? WHERE id = ?");
 const findUser = db.prepare("SELECT id, email, username, role FROM users WHERE id = ?");
 
+function requireAdmin(req, res, next) {
+  if (!req.user) return res.status(404).json({ error: "Not found" });
+  if (req.user.role !== "admin") return res.status(404).json({ error: "Not found" });
+  next();
+}
+
 function buildAdminRouter() {
   const router = express.Router();
 
-  router.use(requireAuth);
+  router.use(requireAuth, requireAdmin);
 
   router.get("/users", (_req, res) => {
     res.json({ users: listUsers.all() });

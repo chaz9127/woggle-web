@@ -759,3 +759,28 @@
   margin: 0;
 }
 .admin__error { color: var(--error); }
+
+.notfound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100svh;
+  gap: 12px;
+  text-align: center;
+}
+.notfound__code {
+  font-size: 64px;
+  margin: 0;
+  letter-spacing: 2px;
+}
+.notfound__msg {
+  margin: 0;
+  color: var(--muted);
+}
+.notfound__home {
+  color: var(--accent);
+  text-decoration: none;
+  margin-top: 8px;
+}
+.notfound__home:hover { text-decoration: underline; }
