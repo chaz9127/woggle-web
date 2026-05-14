@@ -11,6 +11,7 @@ const {
   buildSessionMiddleware,
   passport,
 } = require("./auth");
+const { buildGamesRouter } = require("./games");
 
 const lookupLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -45,6 +46,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", buildAuthRouter());
+app.use("/api/games", buildGamesRouter());
 app.get("/api/word/:word", lookupLimiter, handleWordLookup);
 app.post("/api/word/:word/suggest", suggestLimiter, handleWordSuggest);
 

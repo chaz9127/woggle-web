@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Header from './components/Header';
 import Board from './components/Board';
 import WordList from './components/WordList';
@@ -9,6 +9,7 @@ import AuthModal from './auth/AuthModal';
 import ChooseUsername from './auth/ChooseUsername';
 import { useAuth } from './auth/AuthContext';
 import { useGame } from './hooks/useGame';
+import { useGameStats } from './hooks/useGameStats';
 import { useTheme } from './hooks/useTheme';
 import { tilesToWord } from './utils/scoring';
 import './App.css';
@@ -38,10 +39,21 @@ export default function App() {
     resetCookie,
   } = useGame({ clearAfterInvalid: !!user?.clearAfterInvalid });
 
+  const { stats, playedToday, submitCompletion } = useGameStats();
+
   const [rulesOpen, setRulesOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const currentWord = tilesToWord(selection);
   const showTimer = phase === 'playing' || phase === 'done';
+
+  const submittedRef = useRef(null);
+  useEffect(() => {
+    if (phase !== 'done' || !user) return;
+    const key = `${dateStr}:${foundWords.length}`;
+    if (submittedRef.current === key) return;
+    submittedRef.current = key;
+    submitCompletion(dateStr, foundWords.map((w) => w.word));
+  }, [phase, user, dateStr, foundWords, submitCompletion]);
 
   if (!authLoading && user && !user.username) {
     return <ChooseUsername />;
@@ -65,13 +77,14 @@ export default function App() {
           <StartScreen
             dateStr={dateStr}
             phase={phase}
-            hasPlayedCookie={hasPlayedCookie}
+            hasPlayedCookie={hasPlayedCookie || (!!user && playedToday)}
             onStart={startGame}
             onResetCookie={resetCookie}
             totals={totals}
             foundWords={foundWords}
             board={board}
             theme={theme}
+            stats={stats}
           />
         ) : (
           <>

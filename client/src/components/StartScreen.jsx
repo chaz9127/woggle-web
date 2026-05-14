@@ -12,6 +12,7 @@ export default function StartScreen({
   foundWords,
   board,
   theme,
+  stats,
 }) {
   const locked = phase === "locked";
   const [shareStatus, setShareStatus] = useState("");
@@ -42,7 +43,7 @@ export default function StartScreen({
               You've already played today's Woggle. A new board unlocks at
               midnight.
             </p>
-            {foundWords?.length > 0 && (
+            {(foundWords?.length > 0 || stats) && (
               <div className="start__recap">
                 <div>
                   <span>Words</span>
@@ -52,6 +53,18 @@ export default function StartScreen({
                   <span>Score</span>
                   <strong>{totals.scrabble}</strong>
                 </div>
+                {stats && (
+                  <>
+                    <div>
+                      <span>Streak</span>
+                      <strong>{stats.currentStreak}</strong>
+                    </div>
+                    <div>
+                      <span>Total</span>
+                      <strong>{stats.totalGames}</strong>
+                    </div>
+                  </>
+                )}
               </div>
             )}
             {sharePreview && (

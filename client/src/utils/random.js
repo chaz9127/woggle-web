@@ -19,10 +19,7 @@ export function mulberry32(seed) {
 }
 
 export function todayDateString(d = new Date()) {
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
+  return d.toISOString().slice(0, 10);
 }
 
 export function shuffleInPlace(arr, rand) {
