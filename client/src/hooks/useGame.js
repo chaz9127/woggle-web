@@ -116,6 +116,7 @@ export function useGame({ clearAfterInvalid = false } = {}) {
     }
     if (foundWords.some((w) => w.word === word)) {
       setError("Already found");
+      if (clearAfterInvalid) setSelection([]);
       return;
     }
     setSubmitting(true);

@@ -55,6 +55,24 @@ export default function App() {
     submitCompletion(dateStr, foundWords.map((w) => w.word));
   }, [phase, user, dateStr, foundWords, submitCompletion]);
 
+  useEffect(() => {
+    if (phase !== 'playing') return;
+    const onKey = (e) => {
+      if (e.key !== 'Enter') return;
+      const target = e.target;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      const isTile = target?.closest?.('.tile');
+      if (tag === 'BUTTON' && !isTile) return;
+      if (submitting || selection.length === 0) return;
+      e.preventDefault();
+      if (isTile && typeof target.blur === 'function') target.blur();
+      submitWord();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [phase, submitting, selection.length, submitWord]);
+
   if (!authLoading && user && !user.username) {
     return <ChooseUsername />;
   }

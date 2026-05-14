@@ -45,14 +45,6 @@ export default function StartScreen({
             </p>
             {(foundWords?.length > 0 || stats) && (
               <div className="start__recap">
-                <div>
-                  <span>Words</span>
-                  <strong>{foundWords.length}</strong>
-                </div>
-                <div>
-                  <span>Score</span>
-                  <strong>{totals.scrabble}</strong>
-                </div>
                 {stats && (
                   <>
                     <div>
@@ -65,6 +57,14 @@ export default function StartScreen({
                     </div>
                   </>
                 )}
+                <div>
+                  <span>Words</span>
+                  <strong>{foundWords.length}</strong>
+                </div>
+                <div>
+                  <span>Score</span>
+                  <strong>{totals.scrabble}</strong>
+                </div>
               </div>
             )}
             {sharePreview && (
