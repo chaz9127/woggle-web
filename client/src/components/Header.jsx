@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 
-export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, remaining, showTimer }) {
+export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, onOpenStats, remaining, showTimer }) {
   const mm = String(Math.floor((remaining ?? 0) / 60)).padStart(1, "0");
   const ss = String((remaining ?? 0) % 60).padStart(2, "0");
   const low = showTimer && remaining <= 10;
@@ -93,6 +93,13 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
                     <span className="switch__thumb" />
                   </span>
                 </label>
+                <button
+                  type="button"
+                  className="header__menu-item"
+                  onClick={() => { setMenuOpen(false); onOpenStats?.(); }}
+                >
+                  Stats
+                </button>
                 <button
                   type="button"
                   className="header__menu-item"

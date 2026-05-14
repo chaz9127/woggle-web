@@ -640,3 +640,37 @@
 .switch--on .switch__thumb {
   transform: translateX(16px);
 }
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.stats__cell {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.stats__cell--wide {
+  grid-column: 1 / -1;
+}
+.stats__cell span {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
+.stats__cell strong {
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+.stats__empty {
+  text-align: center;
+  color: var(--muted);
+  margin: 0;
+}

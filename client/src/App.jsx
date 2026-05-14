@@ -3,6 +3,7 @@ import Header from './components/Header';
 import Board from './components/Board';
 import WordList from './components/WordList';
 import RulesModal from './components/RulesModal';
+import StatsModal from './components/StatsModal';
 import SummaryModal from './components/SummaryModal';
 import StartScreen from './components/StartScreen';
 import AuthModal from './auth/AuthModal';
@@ -44,6 +45,7 @@ export default function App() {
 
   const [rulesOpen, setRulesOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
   const currentWord = tilesToWord(selection);
   const showTimer = phase === 'playing' || phase === 'done';
 
@@ -88,6 +90,7 @@ export default function App() {
         onToggleTheme={toggleTheme}
         onOpenRules={() => setRulesOpen(true)}
         onOpenAuth={() => setAuthOpen(true)}
+        onOpenStats={() => setStatsOpen(true)}
         remaining={remaining}
         showTimer={showTimer}
       />
@@ -171,6 +174,7 @@ export default function App() {
 
       <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+      <StatsModal open={statsOpen} onClose={() => setStatsOpen(false)} />
       <SummaryModal
         open={phase === 'done'}
         onClose={dismissSummary}

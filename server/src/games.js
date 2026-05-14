@@ -24,6 +24,8 @@ db.exec(`
     completed_at TEXT,
     score INTEGER NOT NULL DEFAULT 0,
     word_count INTEGER NOT NULL DEFAULT 0,
+    highest_word TEXT,
+    highest_word_score INTEGER NOT NULL DEFAULT 0,
     found_words TEXT NOT NULL DEFAULT '[]',
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -54,12 +56,34 @@ if (!userCols.includes("last_completed_date")) {
   db.exec("ALTER TABLE users ADD COLUMN last_completed_date TEXT");
 }
 
+const gameCols = db.prepare("PRAGMA table_info(user_games)").all().map((c) => c.name);
+if (!gameCols.includes("highest_word")) {
+  db.exec("ALTER TABLE user_games ADD COLUMN highest_word TEXT");
+}
+if (!gameCols.includes("highest_word_score")) {
+  db.exec("ALTER TABLE user_games ADD COLUMN highest_word_score INTEGER NOT NULL DEFAULT 0");
+}
+
 const findGame = db.prepare(
   "SELECT * FROM user_games WHERE user_id = ? AND game_date = ?"
 );
 const insertGame = db.prepare(`
-  INSERT INTO user_games (user_id, game_date, completed_at, score, word_count, found_words)
-  VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?)
+  INSERT INTO user_games (
+    user_id, game_date, completed_at, score, word_count,
+    highest_word, highest_word_score, found_words
+  )
+  VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?)
+`);
+const highestGameScoreStmt = db.prepare(`
+  SELECT MAX(score) AS best FROM user_games
+  WHERE user_id = ? AND completed_at IS NOT NULL
+`);
+const highestWordStmt = db.prepare(`
+  SELECT highest_word AS word, highest_word_score AS score
+  FROM user_games
+  WHERE user_id = ? AND highest_word IS NOT NULL
+  ORDER BY highest_word_score DESC, length(highest_word) DESC
+  LIMIT 1
 `);
 const wordExists = db.prepare("SELECT 1 FROM words WHERE word = ?");
 const findUserStats = db.prepare(`
@@ -99,9 +123,12 @@ function effectiveStreak(user) {
   return 0;
 }
 
-const completeGameTx = db.transaction((userId, gameDate, acceptedWords, score) => {
+const completeGameTx = db.transaction((userId, gameDate, acceptedWords, score, highestWord, highestWordScore) => {
   const wordCount = acceptedWords.length;
-  insertGame.run(userId, gameDate, score, wordCount, JSON.stringify(acceptedWords));
+  insertGame.run(
+    userId, gameDate, score, wordCount,
+    highestWord, highestWordScore, JSON.stringify(acceptedWords)
+  );
 
   const stats = findUserStats.get(userId);
   const total = (stats.total_games || 0) + 1;
@@ -146,6 +173,8 @@ function buildGamesRouter() {
     const seen = new Set();
     const accepted = [];
     let score = 0;
+    let highestWord = null;
+    let highestWordScore = 0;
     for (const raw of words) {
       if (typeof raw !== "string") continue;
       const w = raw.toLowerCase().trim();
@@ -154,12 +183,17 @@ function buildGamesRouter() {
       if (!wordExists.get(w)) continue;
       seen.add(w);
       accepted.push(w);
-      score += scoreWord(w);
+      const ws = scoreWord(w);
+      score += ws;
+      if (ws > highestWordScore || (ws === highestWordScore && w.length > (highestWord?.length || 0))) {
+        highestWord = w;
+        highestWordScore = ws;
+      }
     }
 
     let result;
     try {
-      result = completeGameTx(req.user.id, gameDate, accepted, score);
+      result = completeGameTx(req.user.id, gameDate, accepted, score, highestWord, highestWordScore);
     } catch (e) {
       if (String(e.message).includes("UNIQUE")) {
         return res.status(409).json({ error: "Already played" });
@@ -183,12 +217,17 @@ function buildGamesRouter() {
     }));
     const today = utcToday();
     const todayGame = findGame.get(req.user.id, today);
+    const highestGameScore = highestGameScoreStmt.get(req.user.id)?.best || 0;
+    const highest = highestWordStmt.get(req.user.id);
     res.json({
       stats: {
         totalGames: stats.total_games,
         currentStreak: effectiveStreak(stats),
         longestStreak: stats.longest_streak,
         lastCompletedDate: stats.last_completed_date,
+        highestGameScore,
+        highestWord: highest?.word || null,
+        highestWordScore: highest?.score || 0,
       },
       playedToday: !!(todayGame && todayGame.completed_at),
       todayDate: today,
