@@ -8,6 +8,7 @@ const Tile = forwardRef(function Tile({ tile, selected, selectionIndex, last, on
     <button
       ref={ref}
       type="button"
+      data-tile-id={tile.id}
       className={classes.join(' ')}
       onClick={() => onClick(tile)}
       aria-label={`Letter ${tile.letter}${selected ? `, position ${selectionIndex + 1}` : ''}`}
