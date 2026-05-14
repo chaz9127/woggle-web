@@ -31,6 +31,31 @@ const insertApprovedWord = db.prepare(
 );
 const deleteWord = db.prepare("DELETE FROM words WHERE word = ?");
 
+const statsTotalGames = db.prepare(
+  "SELECT COUNT(*) AS n FROM user_games WHERE completed_at IS NOT NULL"
+);
+const statsTotalWords = db.prepare("SELECT COUNT(*) AS n FROM words");
+const statsLifetimeHigh = db.prepare(`
+  SELECT u.username, g.score, g.game_date
+  FROM user_games g
+  JOIN users u ON u.id = g.user_id
+  WHERE g.completed_at IS NOT NULL
+  ORDER BY g.score DESC, g.completed_at ASC
+  LIMIT 1
+`);
+const statsTodayHigh = db.prepare(`
+  SELECT u.username, g.score
+  FROM user_games g
+  JOIN users u ON u.id = g.user_id
+  WHERE g.completed_at IS NOT NULL AND g.game_date = ?
+  ORDER BY g.score DESC, g.completed_at ASC
+  LIMIT 1
+`);
+
+function utcToday() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 function requireAdmin(req, res, next) {
   if (!req.user) return res.status(404).json({ error: "Not found" });
   if (req.user.role !== "admin") return res.status(404).json({ error: "Not found" });
@@ -41,6 +66,23 @@ function buildAdminRouter() {
   const router = express.Router();
 
   router.use(requireAuth, requireAdmin);
+
+  router.get("/stats", (_req, res) => {
+    const today = utcToday();
+    const lifetime = statsLifetimeHigh.get();
+    const todayHigh = statsTodayHigh.get(today);
+    res.json({
+      totalGames: statsTotalGames.get().n,
+      totalWords: statsTotalWords.get().n,
+      lifetimeHigh: lifetime
+        ? { username: lifetime.username, score: lifetime.score, gameDate: lifetime.game_date }
+        : null,
+      todayHigh: todayHigh
+        ? { username: todayHigh.username, score: todayHigh.score }
+        : null,
+      todayDate: today,
+    });
+  });
 
   router.get("/users", (_req, res) => {
     res.json({ users: listUsers.all() });

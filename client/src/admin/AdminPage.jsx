@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
+import AdminHome from './AdminHome';
 import AdminUsers from './AdminUsers';
 import AdminWordSuggestions from './AdminWordSuggestions';
 
 export default function AdminPage() {
-  const [active, setActive] = useState('users');
+  const [active, setActive] = useState('home');
   const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
@@ -20,6 +21,7 @@ export default function AdminPage() {
   }, []);
 
   const NAV = [
+    { key: 'home', label: 'Home', render: () => <AdminHome /> },
     { key: 'users', label: 'Users', render: () => <AdminUsers /> },
     {
       key: 'word-suggestions',
@@ -35,7 +37,7 @@ export default function AdminPage() {
       <aside className="admin__nav">
         <a href="/" className="admin__back">← Back to game</a>
         <h2 className="admin__heading">Admin</h2>
-        <nav>
+        <nav className="admin__nav-list">
           {NAV.map((item) => (
             <button
               key={item.key}
