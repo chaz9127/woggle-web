@@ -112,6 +112,20 @@ const insertGame = db.prepare(`
   )
   VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?)
 `);
+const upsertGame = db.prepare(`
+  INSERT INTO user_games (
+    user_id, game_date, completed_at, score, word_count,
+    highest_word, highest_word_score, found_words
+  )
+  VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?)
+  ON CONFLICT(user_id, game_date) DO UPDATE SET
+    completed_at = CURRENT_TIMESTAMP,
+    score = excluded.score,
+    word_count = excluded.word_count,
+    highest_word = excluded.highest_word,
+    highest_word_score = excluded.highest_word_score,
+    found_words = excluded.found_words
+`);
 const highestGameScoreStmt = db.prepare(`
   SELECT MAX(score) AS best FROM user_games
   WHERE user_id = ? AND completed_at IS NOT NULL
@@ -179,12 +193,23 @@ function effectiveStreak(user) {
 
 const completeGameTx = db.transaction((userId, gameDate, acceptedWords, score, highestWord, highestWordScore) => {
   const wordCount = acceptedWords.length;
-  insertGame.run(
+  const existing = findGame.get(userId, gameDate);
+  const wasCompleted = !!(existing && existing.completed_at);
+
+  upsertGame.run(
     userId, gameDate, score, wordCount,
     highestWord, highestWordScore, JSON.stringify(acceptedWords)
   );
 
   const stats = findUserStats.get(userId);
+  if (wasCompleted) {
+    return {
+      total: stats.total_games || 0,
+      currentStreak: stats.current_streak || 0,
+      longestStreak: stats.longest_streak || 0,
+    };
+  }
+
   const total = (stats.total_games || 0) + 1;
   const prevStreak = stats.last_completed_date === yesterdayOf(gameDate)
     ? stats.current_streak || 0
@@ -210,20 +235,6 @@ function buildGamesRouter() {
     }
     if (!words) {
       return res.status(400).json({ error: "words must be an array" });
-    }
-
-    if (req.user) {
-      const existing = findGame.get(req.user.id, gameDate);
-      if (existing && existing.completed_at) {
-        return res.status(409).json({
-          error: "Already played",
-          game: {
-            gameDate: existing.game_date,
-            score: existing.score,
-            wordCount: existing.word_count,
-          },
-        });
-      }
     }
 
     const seen = new Set();
@@ -258,15 +269,9 @@ function buildGamesRouter() {
       });
     }
 
-    let result;
-    try {
-      result = completeGameTx(req.user.id, gameDate, accepted, score, highestWord, highestWordScore);
-    } catch (e) {
-      if (String(e.message).includes("UNIQUE")) {
-        return res.status(409).json({ error: "Already played" });
-      }
-      throw e;
-    }
+    const result = completeGameTx(
+      req.user.id, gameDate, accepted, score, highestWord, highestWordScore
+    );
 
     res.json({
       game: { gameDate, score, wordCount: accepted.length },
