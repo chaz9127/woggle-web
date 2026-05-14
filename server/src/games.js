@@ -64,6 +64,44 @@ if (!gameCols.includes("highest_word_score")) {
   db.exec("ALTER TABLE user_games ADD COLUMN highest_word_score INTEGER NOT NULL DEFAULT 0");
 }
 
+const userIdCol = db
+  .prepare("PRAGMA table_info(user_games)")
+  .all()
+  .find((c) => c.name === "user_id");
+if (userIdCol && userIdCol.notnull) {
+  db.exec(`
+    CREATE TABLE user_games_new (
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      game_date TEXT NOT NULL,
+      started_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      completed_at TEXT,
+      score INTEGER NOT NULL DEFAULT 0,
+      word_count INTEGER NOT NULL DEFAULT 0,
+      highest_word TEXT,
+      highest_word_score INTEGER NOT NULL DEFAULT 0,
+      found_words TEXT NOT NULL DEFAULT '[]',
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (user_id, game_date)
+    );
+    INSERT INTO user_games_new
+      SELECT user_id, game_date, started_at, completed_at, score, word_count,
+             highest_word, highest_word_score, found_words, created_at, updated_at
+        FROM user_games;
+    DROP TABLE user_games;
+    ALTER TABLE user_games_new RENAME TO user_games;
+    CREATE INDEX IF NOT EXISTS idx_user_games_user_date
+      ON user_games (user_id, game_date DESC);
+    CREATE TRIGGER IF NOT EXISTS user_games_updated_at
+      AFTER UPDATE ON user_games
+      FOR EACH ROW
+      BEGIN
+        UPDATE user_games SET updated_at = CURRENT_TIMESTAMP
+          WHERE user_id IS OLD.user_id AND game_date = OLD.game_date;
+      END;
+  `);
+}
+
 const findGame = db.prepare(
   "SELECT * FROM user_games WHERE user_id = ? AND game_date = ?"
 );
@@ -99,7 +137,7 @@ const leaderboardAllTime = db.prepare(`
   SELECT u.username, g.score, g.game_date
   FROM user_games g
   JOIN users u ON u.id = g.user_id
-  WHERE g.completed_at IS NOT NULL
+  WHERE g.completed_at IS NOT NULL AND g.user_id IS NOT NULL
   ORDER BY g.score DESC, g.completed_at ASC
   LIMIT 10
 `);
@@ -107,7 +145,7 @@ const leaderboardToday = db.prepare(`
   SELECT u.username, g.score
   FROM user_games g
   JOIN users u ON u.id = g.user_id
-  WHERE g.completed_at IS NOT NULL AND g.game_date = ?
+  WHERE g.completed_at IS NOT NULL AND g.user_id IS NOT NULL AND g.game_date = ?
   ORDER BY g.score DESC, g.completed_at ASC
   LIMIT 10
 `);
@@ -160,7 +198,7 @@ const completeGameTx = db.transaction((userId, gameDate, acceptedWords, score, h
 function buildGamesRouter() {
   const router = express.Router();
 
-  router.post("/complete", requireAuth, (req, res) => {
+  router.post("/complete", (req, res) => {
     const gameDate = String(req.body?.gameDate || "");
     const words = Array.isArray(req.body?.words) ? req.body.words : null;
     if (!DATE_RE.test(gameDate)) {
@@ -174,16 +212,18 @@ function buildGamesRouter() {
       return res.status(400).json({ error: "words must be an array" });
     }
 
-    const existing = findGame.get(req.user.id, gameDate);
-    if (existing && existing.completed_at) {
-      return res.status(409).json({
-        error: "Already played",
-        game: {
-          gameDate: existing.game_date,
-          score: existing.score,
-          wordCount: existing.word_count,
-        },
-      });
+    if (req.user) {
+      const existing = findGame.get(req.user.id, gameDate);
+      if (existing && existing.completed_at) {
+        return res.status(409).json({
+          error: "Already played",
+          game: {
+            gameDate: existing.game_date,
+            score: existing.score,
+            wordCount: existing.word_count,
+          },
+        });
+      }
     }
 
     const seen = new Set();
@@ -205,6 +245,17 @@ function buildGamesRouter() {
         highestWord = w;
         highestWordScore = ws;
       }
+    }
+
+    if (!req.user) {
+      insertGame.run(
+        null, gameDate, score, accepted.length,
+        highestWord, highestWordScore, JSON.stringify(accepted)
+      );
+      return res.json({
+        game: { gameDate, score, wordCount: accepted.length },
+        stats: null,
+      });
     }
 
     let result;

@@ -690,6 +690,12 @@
   margin: 0;
   font-size: 20px;
 }
+.leaderboards__disclaimer {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+}
 .leaderboards__tabs {
   display: flex;
   gap: 4px;

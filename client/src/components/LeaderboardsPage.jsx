@@ -29,6 +29,9 @@ export default function LeaderboardsPage() {
   return (
     <div className="leaderboards">
       <h2 className="leaderboards__title">Leaderboards</h2>
+      <p className="leaderboards__disclaimer">
+        You must create an account to be included on the leaderboards.
+      </p>
 
       <div className="leaderboards__tabs" role="tablist">
         <button

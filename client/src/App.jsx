@@ -54,12 +54,12 @@ export default function App() {
 
   const submittedRef = useRef(null);
   useEffect(() => {
-    if (phase !== 'done' || !user) return;
+    if (phase !== 'done') return;
     const key = `${dateStr}:${foundWords.length}`;
     if (submittedRef.current === key) return;
     submittedRef.current = key;
     submitCompletion(dateStr, foundWords.map((w) => w.word));
-  }, [phase, user, dateStr, foundWords, submitCompletion]);
+  }, [phase, dateStr, foundWords, submitCompletion]);
 
   useEffect(() => {
     if (phase !== 'playing') return;

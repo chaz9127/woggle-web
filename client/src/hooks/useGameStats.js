@@ -49,19 +49,20 @@ export function useGameStats() {
   }, [refresh]);
 
   const submitCompletion = useCallback(async (gameDate, words) => {
-    if (!user) return null;
     try {
       const data = await apiFetch('/api/games/complete', {
         method: 'POST',
         body: JSON.stringify({ gameDate, words }),
       });
-      setStats(data.stats ? {
-        totalGames: data.stats.total,
-        currentStreak: data.stats.currentStreak,
-        longestStreak: data.stats.longestStreak,
-        lastCompletedDate: gameDate,
-      } : null);
-      setPlayedToday(true);
+      if (user) {
+        setStats(data.stats ? {
+          totalGames: data.stats.total,
+          currentStreak: data.stats.currentStreak,
+          longestStreak: data.stats.longestStreak,
+          lastCompletedDate: gameDate,
+        } : null);
+        setPlayedToday(true);
+      }
       return data;
     } catch (err) {
       if (err.status === 409) {
