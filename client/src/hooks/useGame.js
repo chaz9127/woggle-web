@@ -51,6 +51,7 @@ export function useGame({ clearAfterInvalid = false } = {}) {
   const [error, setError] = useState("");
   const [invalidWord, setInvalidWord] = useState("");
   const [suggested, setSuggested] = useState(false);
+  const [successPoints, setSuccessPoints] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [startTime, setStartTime] = useState(null);
   const [remaining, setRemaining] = useState(GAME_DURATION_SECONDS);
@@ -79,6 +80,12 @@ export function useGame({ clearAfterInvalid = false } = {}) {
   }, [error, invalidWord]);
 
   useEffect(() => {
+    if (successPoints == null) return;
+    const id = setTimeout(() => setSuccessPoints(null), 1500);
+    return () => clearTimeout(id);
+  }, [successPoints]);
+
+  useEffect(() => {
     if (phase === "done" || phase === "locked") {
       saveResult(dateStr, foundWords);
     }
@@ -88,6 +95,7 @@ export function useGame({ clearAfterInvalid = false } = {}) {
     setError("");
     setInvalidWord("");
     setSuggested(false);
+    setSuccessPoints(null);
     setSelection((prev) => {
       if (prev.length === 0) return [tile];
       const last = prev[prev.length - 1];
@@ -103,6 +111,7 @@ export function useGame({ clearAfterInvalid = false } = {}) {
     setError("");
     setInvalidWord("");
     setSuggested(false);
+    setSuccessPoints(null);
   }, []);
 
   const submitWord = useCallback(async () => {
@@ -139,6 +148,7 @@ export function useGame({ clearAfterInvalid = false } = {}) {
     setSelection([]);
     setInvalidWord("");
     setSuggested(false);
+    setSuccessPoints(entry.scrabble);
   }, [selection, foundWords, submitting, phase, clearAfterInvalid]);
 
   const suggestInvalid = useCallback(async () => {
@@ -192,6 +202,7 @@ export function useGame({ clearAfterInvalid = false } = {}) {
     error,
     invalidWord,
     suggested,
+    successPoints,
     submitting,
     remaining,
     totals,

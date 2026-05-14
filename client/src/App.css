@@ -121,6 +121,14 @@
   text-transform: none;
   font-size: 16px;
 }
+.current-word--success {
+  color: #2e7d32;
+  border-color: #2e7d32;
+  background: rgba(46, 125, 50, 0.08);
+  letter-spacing: 0.5px;
+  text-transform: none;
+  font-size: 16px;
+}
 .current-word__placeholder {
   font-weight: 400;
   font-size: 14px;

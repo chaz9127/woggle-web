@@ -26,6 +26,7 @@ export default function App() {
     error,
     invalidWord,
     suggested,
+    successPoints,
     submitting,
     remaining,
     totals,
@@ -113,8 +114,10 @@ export default function App() {
               <div><span>Words</span><strong>{foundWords.length}</strong></div>
             </div>
 
-            <div className={`current-word ${error ? 'current-word--error' : ''}`}>
-              {error ? (
+            <div className={`current-word ${error ? 'current-word--error' : ''} ${successPoints != null ? 'current-word--success' : ''}`}>
+              {successPoints != null ? (
+                <span>{successPoints} {successPoints === 1 ? 'point' : 'points'}!</span>
+              ) : error ? (
                 <>
                   <span>{error}</span>
                   {invalidWord && (
