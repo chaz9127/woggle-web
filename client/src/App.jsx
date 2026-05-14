@@ -16,11 +16,27 @@ import { useGame } from './hooks/useGame';
 import { useGameStats } from './hooks/useGameStats';
 import { useTheme } from './hooks/useTheme';
 import { tilesToWord } from './utils/scoring';
+import { todayDateString } from './utils/random';
+import {
+  getPlayedCookie, setPlayedCookie,
+  getOverrideCookie, setOverrideCookie, clearOverrideCookie,
+} from './utils/cookies';
 import './App.css';
 
 export default function App() {
   const { theme, toggle: toggleTheme } = useTheme();
   const { user, loading: authLoading } = useAuth();
+
+  const today = todayDateString();
+  const { stats, playedToday, submitCompletion } = useGameStats();
+  const [playedCookieActive, setPlayedCookieActive] = useState(
+    () => getPlayedCookie() === today
+  );
+  const [overrideActive, setOverrideActive] = useState(
+    () => getOverrideCookie() === today
+  );
+  const locked = !overrideActive && (user ? playedToday : playedCookieActive);
+
   const {
     dateStr,
     board,
@@ -34,17 +50,13 @@ export default function App() {
     submitting,
     remaining,
     totals,
-    hasPlayedCookie,
     selectTile,
     clearSelection,
     submitWord,
     suggestInvalid,
     startGame,
     dismissSummary,
-    resetCookie,
-  } = useGame({ clearAfterInvalid: !!user?.clearAfterInvalid });
-
-  const { stats, playedToday, submitCompletion } = useGameStats();
+  } = useGame({ clearAfterInvalid: !!user?.clearAfterInvalid, locked });
 
   const [rulesOpen, setRulesOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
@@ -58,8 +70,17 @@ export default function App() {
     const key = `${dateStr}:${foundWords.length}`;
     if (submittedRef.current === key) return;
     submittedRef.current = key;
+
+    if (overrideActive) {
+      clearOverrideCookie();
+      setOverrideActive(false);
+    } else if (!user) {
+      setPlayedCookie(dateStr);
+      setPlayedCookieActive(true);
+    }
+
     submitCompletion(dateStr, foundWords.map((w) => w.word));
-  }, [phase, dateStr, foundWords, submitCompletion]);
+  }, [phase, dateStr, foundWords, submitCompletion, overrideActive, user]);
 
   useEffect(() => {
     if (phase !== 'playing') return;
@@ -111,9 +132,12 @@ export default function App() {
           <StartScreen
             dateStr={dateStr}
             phase={phase}
-            hasPlayedCookie={hasPlayedCookie || (!!user && playedToday)}
+            locked={locked}
             onStart={startGame}
-            onResetCookie={resetCookie}
+            onOverride={() => {
+              setOverrideCookie(dateStr);
+              setOverrideActive(true);
+            }}
             totals={totals}
             foundWords={foundWords}
             board={board}

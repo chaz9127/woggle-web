@@ -5,16 +5,16 @@ import { useAuth } from "../auth/AuthContext";
 export default function StartScreen({
   dateStr,
   phase,
-  hasPlayedCookie,
+  locked: lockedProp,
   onStart,
-  onResetCookie,
+  onOverride,
   totals,
   foundWords,
   board,
   theme,
   stats,
 }) {
-  const locked = phase === "locked";
+  const locked = phase === "locked" || lockedProp;
   const [shareStatus, setShareStatus] = useState("");
   const { user } = useAuth();
   const isPrivileged = user?.role === "admin" || user?.role === "tester";
@@ -97,14 +97,14 @@ export default function StartScreen({
           </>
         )}
 
-        {hasPlayedCookie && (import.meta.env.DEV || isPrivileged) && (
+        {locked && (import.meta.env.DEV || isPrivileged) && (
           <button
             type="button"
             className="btn btn--ghost start__reset"
-            onClick={onResetCookie}
-            title="Dev only: clear the daily-play cookie"
+            onClick={onOverride}
+            title="Override the daily play limit (one game)"
           >
-            Dev: Clear cookie & play again
+            Tester: Play again
           </button>
         )}
       </div>

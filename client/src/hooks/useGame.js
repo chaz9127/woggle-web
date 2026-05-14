@@ -3,7 +3,6 @@ import { generateBoard, isAdjacent } from "../utils/board";
 import { todayDateString } from "../utils/random";
 import { scrabbleScore, tilesToWord, tilesToLetterCount } from "../utils/scoring";
 import { checkWord, suggestWord } from "./useDictionary";
-import { getPlayedCookie, setPlayedCookie, clearPlayedCookie } from "../utils/cookies";
 
 export const GAME_DURATION_SECONDS = 120;
 const RESULT_KEY_PREFIX = "woggle-result-";
@@ -38,15 +37,14 @@ function clearResult(dateStr) {
   }
 }
 
-export function useGame({ clearAfterInvalid = false } = {}) {
+export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
   const dateStr = useMemo(() => todayDateString(), []);
   const board = useMemo(() => generateBoard(dateStr), [dateStr]);
 
-  const initiallyLocked = getPlayedCookie() === dateStr;
-  const [phase, setPhase] = useState(() => (initiallyLocked ? "locked" : "idle"));
+  const [phase, setPhase] = useState(() => (locked ? "locked" : "idle"));
   const [selection, setSelection] = useState([]);
   const [foundWords, setFoundWords] = useState(() =>
-    initiallyLocked ? loadResult(dateStr) ?? [] : []
+    locked ? loadResult(dateStr) ?? [] : []
   );
   const [error, setError] = useState("");
   const [invalidWord, setInvalidWord] = useState("");
@@ -64,7 +62,6 @@ export function useGame({ clearAfterInvalid = false } = {}) {
       setRemaining(left);
       if (left === 0) {
         setPhase("done");
-        setPlayedCookie(dateStr);
       }
     };
     tick();
@@ -90,6 +87,18 @@ export function useGame({ clearAfterInvalid = false } = {}) {
       saveResult(dateStr, foundWords);
     }
   }, [phase, dateStr, foundWords]);
+
+  useEffect(() => {
+    if (phase === "playing" || phase === "done") return;
+    if (locked && phase !== "locked") {
+      setPhase("locked");
+      setFoundWords(loadResult(dateStr) ?? []);
+    } else if (!locked && phase === "locked") {
+      setPhase("idle");
+      setFoundWords([]);
+      clearResult(dateStr);
+    }
+  }, [locked, phase, dateStr]);
 
   const selectTile = useCallback((tile) => {
     setError("");
@@ -181,18 +190,6 @@ export function useGame({ clearAfterInvalid = false } = {}) {
     setPhase("locked");
   }, []);
 
-  const resetCookie = useCallback(() => {
-    clearPlayedCookie();
-    clearResult(dateStr);
-    setPhase("idle");
-    setSelection([]);
-    setFoundWords([]);
-    setRemaining(GAME_DURATION_SECONDS);
-    setStartTime(null);
-  }, [dateStr]);
-
-  const hasPlayedCookie = phase === "locked" || getPlayedCookie() === dateStr;
-
   return {
     dateStr,
     board,
@@ -206,13 +203,11 @@ export function useGame({ clearAfterInvalid = false } = {}) {
     submitting,
     remaining,
     totals,
-    hasPlayedCookie,
     selectTile,
     clearSelection,
     submitWord,
     suggestInvalid,
     startGame,
     dismissSummary,
-    resetCookie,
   };
 }

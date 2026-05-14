@@ -1,19 +1,28 @@
-const COOKIE_NAME = 'woggle-played';
+const PLAYED_COOKIE = 'woggle-played';
+const OVERRIDE_COOKIE = 'woggle-override';
 
-export function getPlayedCookie() {
+function read(name) {
   const match = document.cookie
     .split('; ')
-    .find((row) => row.startsWith(`${COOKIE_NAME}=`));
+    .find((row) => row.startsWith(`${name}=`));
   return match ? decodeURIComponent(match.split('=')[1]) : null;
 }
 
-export function setPlayedCookie(dateStr) {
+function writeUntilMidnight(name, value) {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   tomorrow.setHours(0, 0, 0, 0);
-  document.cookie = `${COOKIE_NAME}=${encodeURIComponent(dateStr)}; expires=${tomorrow.toUTCString()}; path=/; SameSite=Lax`;
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${tomorrow.toUTCString()}; path=/; SameSite=Lax`;
 }
 
-export function clearPlayedCookie() {
-  document.cookie = `${COOKIE_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
+function clear(name) {
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
 }
+
+export function getPlayedCookie() { return read(PLAYED_COOKIE); }
+export function setPlayedCookie(dateStr) { writeUntilMidnight(PLAYED_COOKIE, dateStr); }
+export function clearPlayedCookie() { clear(PLAYED_COOKIE); }
+
+export function getOverrideCookie() { return read(OVERRIDE_COOKIE); }
+export function setOverrideCookie(dateStr) { writeUntilMidnight(OVERRIDE_COOKIE, dateStr); }
+export function clearOverrideCookie() { clear(OVERRIDE_COOKIE); }
