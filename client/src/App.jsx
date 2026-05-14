@@ -4,6 +4,7 @@ import Board from './components/Board';
 import WordList from './components/WordList';
 import RulesModal from './components/RulesModal';
 import StatsModal from './components/StatsModal';
+import LeaderboardsPage from './components/LeaderboardsPage';
 import SummaryModal from './components/SummaryModal';
 import StartScreen from './components/StartScreen';
 import AuthModal from './auth/AuthModal';
@@ -89,6 +90,7 @@ export default function App() {
     if (user?.role === 'admin') return <AdminPage />;
     return <NotFound />;
   }
+  const isLeaderboards = window.location.pathname.startsWith('/leaderboards');
 
   return (
     <div className="app">
@@ -98,11 +100,14 @@ export default function App() {
         onOpenRules={() => setRulesOpen(true)}
         onOpenAuth={() => setAuthOpen(true)}
         onOpenStats={() => setStatsOpen(true)}
+        onOpenLeaderboard={() => { window.location.href = '/leaderboards'; }}
         remaining={remaining}
-        showTimer={showTimer}
+        showTimer={!isLeaderboards && showTimer}
       />
       <main className="main">
-        {phase === 'idle' || phase === 'locked' ? (
+        {isLeaderboards ? (
+          <LeaderboardsPage />
+        ) : phase === 'idle' || phase === 'locked' ? (
           <StartScreen
             dateStr={dateStr}
             phase={phase}

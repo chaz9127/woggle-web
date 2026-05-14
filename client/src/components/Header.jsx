@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
+import { Trophy } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 
-export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, onOpenStats, remaining, showTimer }) {
+export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, onOpenStats, onOpenLeaderboard, remaining, showTimer }) {
   const mm = String(Math.floor((remaining ?? 0) / 60)).padStart(1, "0");
   const ss = String((remaining ?? 0) % 60).padStart(2, "0");
   const low = showTimer && remaining <= 10;
@@ -35,7 +36,9 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
 
   return (
     <header className="header">
-      <h1 className="header__title">Woggle</h1>
+      <h1 className="header__title">
+        <a href="/" className="header__title-link">Woggle</a>
+      </h1>
       <div
         className={`header__timer ${low ? "header__timer--low" : ""}`}
         aria-label="Time remaining"
@@ -62,6 +65,15 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
           title="Toggle theme"
         >
           {theme === "dark" ? "☀" : "☾"}
+        </button>
+        <button
+          type="button"
+          className="icon-btn"
+          onClick={onOpenLeaderboard}
+          aria-label="Leaderboard"
+          title="Leaderboard"
+        >
+          <Trophy size={18} aria-hidden="true" />
         </button>
         {user ? (
           <div className="header__account" ref={menuRef}>

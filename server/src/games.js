@@ -95,6 +95,22 @@ const updateUserStats = db.prepare(`
   SET total_games = ?, current_streak = ?, longest_streak = ?, last_completed_date = ?
   WHERE id = ?
 `);
+const leaderboardAllTime = db.prepare(`
+  SELECT u.username, g.score, g.game_date
+  FROM user_games g
+  JOIN users u ON u.id = g.user_id
+  WHERE g.completed_at IS NOT NULL
+  ORDER BY g.score DESC, g.completed_at ASC
+  LIMIT 10
+`);
+const leaderboardToday = db.prepare(`
+  SELECT u.username, g.score
+  FROM user_games g
+  JOIN users u ON u.id = g.user_id
+  WHERE g.completed_at IS NOT NULL AND g.game_date = ?
+  ORDER BY g.score DESC, g.completed_at ASC
+  LIMIT 10
+`);
 const recentGames = db.prepare(`
   SELECT game_date, score, word_count, completed_at
   FROM user_games
@@ -232,6 +248,22 @@ function buildGamesRouter() {
       playedToday: !!(todayGame && todayGame.completed_at),
       todayDate: today,
       recent,
+    });
+  });
+
+  router.get("/leaderboard", (_req, res) => {
+    const today = utcToday();
+    res.json({
+      allTime: leaderboardAllTime.all().map((g) => ({
+        username: g.username,
+        score: g.score,
+        gameDate: g.game_date,
+      })),
+      today: leaderboardToday.all(today).map((g) => ({
+        username: g.username,
+        score: g.score,
+      })),
+      todayDate: today,
     });
   });
 
