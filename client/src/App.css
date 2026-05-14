@@ -687,7 +687,6 @@
 }
 .admin__nav {
   border-right: 1px solid var(--border);
-  padding-right: 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;

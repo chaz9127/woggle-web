@@ -21,7 +21,7 @@ async function apiFetch(path, opts = {}) {
   return data;
 }
 
-export default function AdminWordSuggestions() {
+export default function AdminWordSuggestions({ onPendingCountChange } = {}) {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -37,7 +37,24 @@ export default function AdminWordSuggestions() {
     return () => { cancelled = true; };
   }, []);
 
+  useEffect(() => {
+    if (onPendingCountChange) {
+      onPendingCountChange(suggestions.filter((s) => s.status === 'pending').length);
+    }
+  }, [suggestions, onPendingCountChange]);
+
   const changeStatus = async (word, status) => {
+    if (status === 'approved') {
+      const ok = window.confirm(
+        `Approve "${word.toUpperCase()}"? This will add it to the words list.`
+      );
+      if (!ok) return;
+    } else if (status === 'denied') {
+      const ok = window.confirm(
+        `Deny "${word.toUpperCase()}"? This will remove it from the words list if present.`
+      );
+      if (!ok) return;
+    }
     setSavingWord(word);
     const prev = suggestions;
     setSuggestions((list) =>

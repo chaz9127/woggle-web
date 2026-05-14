@@ -1,14 +1,33 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AdminUsers from './AdminUsers';
 import AdminWordSuggestions from './AdminWordSuggestions';
 
-const NAV = [
-  { key: 'users', label: 'Users', render: () => <AdminUsers /> },
-  { key: 'word-suggestions', label: 'Word Suggestions', render: () => <AdminWordSuggestions /> },
-];
-
 export default function AdminPage() {
   const [active, setActive] = useState('users');
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/admin/word-suggestions', { credentials: 'include' })
+      .then((res) => (res.ok ? res.json() : { suggestions: [] }))
+      .then((data) => {
+        if (cancelled) return;
+        const count = (data.suggestions || []).filter((s) => s.status === 'pending').length;
+        setPendingCount(count);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const NAV = [
+    { key: 'users', label: 'Users', render: () => <AdminUsers /> },
+    {
+      key: 'word-suggestions',
+      label: 'Word Suggestions',
+      badge: pendingCount,
+      render: () => <AdminWordSuggestions onPendingCountChange={setPendingCount} />,
+    },
+  ];
   const current = NAV.find((n) => n.key === active) || NAV[0];
 
   return (
@@ -24,6 +43,7 @@ export default function AdminPage() {
               className={`admin__nav-item ${active === item.key ? 'admin__nav-item--active' : ''}`}
               onClick={() => setActive(item.key)}
             >
+              {item.badge > 0 && ` (${item.badge})`}{' '}
               {item.label}
             </button>
           ))}

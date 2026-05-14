@@ -26,6 +26,10 @@ const updateSuggestionStatus = db.prepare(
 const findSuggestion = db.prepare(
   "SELECT word, status, created_at, updated_at FROM word_suggestions WHERE word = ?"
 );
+const insertApprovedWord = db.prepare(
+  "INSERT OR IGNORE INTO words(word) VALUES (?)"
+);
+const deleteWord = db.prepare("DELETE FROM words WHERE word = ?");
 
 function requireAdmin(req, res, next) {
   if (!req.user) return res.status(404).json({ error: "Not found" });
@@ -74,6 +78,11 @@ function buildAdminRouter() {
       return res.status(404).json({ error: "Suggestion not found" });
     }
     updateSuggestionStatus.run(status, word);
+    if (status === "approved") {
+      insertApprovedWord.run(word);
+    } else if (status === "denied") {
+      deleteWord.run(word);
+    }
     res.json({ suggestion: findSuggestion.get(word) });
   });
 
