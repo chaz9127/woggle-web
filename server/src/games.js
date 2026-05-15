@@ -112,20 +112,6 @@ const insertGame = db.prepare(`
   )
   VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?)
 `);
-const upsertGame = db.prepare(`
-  INSERT INTO user_games (
-    user_id, game_date, completed_at, score, word_count,
-    highest_word, highest_word_score, found_words
-  )
-  VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?)
-  ON CONFLICT(user_id, game_date) DO UPDATE SET
-    completed_at = CURRENT_TIMESTAMP,
-    score = excluded.score,
-    word_count = excluded.word_count,
-    highest_word = excluded.highest_word,
-    highest_word_score = excluded.highest_word_score,
-    found_words = excluded.found_words
-`);
 const highestGameScoreStmt = db.prepare(`
   SELECT MAX(score) AS best FROM user_games
   WHERE user_id = ? AND completed_at IS NOT NULL
@@ -206,23 +192,21 @@ function effectiveStreak(user) {
 }
 
 const completeGameTx = db.transaction((userId, gameDate, acceptedWords, score, highestWord, highestWordScore) => {
-  const wordCount = acceptedWords.length;
-  const existing = findGame.get(userId, gameDate);
-  const wasCompleted = !!(existing && existing.completed_at);
-
-  upsertGame.run(
-    userId, gameDate, score, wordCount,
-    highestWord, highestWordScore, JSON.stringify(acceptedWords)
-  );
-
   const stats = findUserStats.get(userId);
-  if (wasCompleted) {
+  const existing = findGame.get(userId, gameDate);
+  if (existing && existing.completed_at) {
     return {
       total: stats.total_games || 0,
       currentStreak: stats.current_streak || 0,
       longestStreak: stats.longest_streak || 0,
+      alreadyPersisted: true,
     };
   }
+
+  insertGame.run(
+    userId, gameDate, score, acceptedWords.length,
+    highestWord, highestWordScore, JSON.stringify(acceptedWords)
+  );
 
   const total = (stats.total_games || 0) + 1;
   const prevStreak = stats.last_completed_date === yesterdayOf(gameDate)

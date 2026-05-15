@@ -520,8 +520,16 @@
   border-top: 1px solid var(--border);
 }
 .auth-google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   text-align: center;
   text-decoration: none;
+}
+.auth-google__logo {
+  display: block;
+  flex-shrink: 0;
 }
 .auth-switch {
   font-size: 13px;
