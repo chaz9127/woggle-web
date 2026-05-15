@@ -8,6 +8,7 @@ export default function StartScreen({
   locked: lockedProp,
   onStart,
   onOverride,
+  onSignUp,
   totals,
   foundWords,
   board,
@@ -94,6 +95,15 @@ export default function StartScreen({
             >
               Play
             </button>
+            {!user && (
+              <button
+                type="button"
+                className="btn btn--ghost start__signup"
+                onClick={onSignUp}
+              >
+                Sign up
+              </button>
+            )}
           </>
         )}
 

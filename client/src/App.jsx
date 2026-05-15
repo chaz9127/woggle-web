@@ -60,6 +60,7 @@ export default function App() {
 
   const [rulesOpen, setRulesOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('signin');
   const [statsOpen, setStatsOpen] = useState(false);
   const currentWord = tilesToWord(selection);
   const showTimer = phase === 'playing' || phase === 'done';
@@ -119,7 +120,7 @@ export default function App() {
         theme={theme}
         onToggleTheme={toggleTheme}
         onOpenRules={() => setRulesOpen(true)}
-        onOpenAuth={() => setAuthOpen(true)}
+        onOpenAuth={() => { setAuthMode('signin'); setAuthOpen(true); }}
         onOpenStats={() => setStatsOpen(true)}
         onOpenLeaderboard={() => { window.location.href = '/leaderboards'; }}
         remaining={remaining}
@@ -138,6 +139,7 @@ export default function App() {
               setOverrideCookie(dateStr);
               setOverrideActive(true);
             }}
+            onSignUp={() => { setAuthMode('signup'); setAuthOpen(true); }}
             totals={totals}
             foundWords={foundWords}
             board={board}
@@ -209,7 +211,7 @@ export default function App() {
       </main>
 
       <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} initialMode={authMode} />
       <StatsModal open={statsOpen} onClose={() => setStatsOpen(false)} />
       <SummaryModal
         open={phase === 'done'}

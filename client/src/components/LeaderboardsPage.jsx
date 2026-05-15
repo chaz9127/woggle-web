@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { todayDateString } from '../utils/random';
 
 async function apiFetch(path) {
   const res = await fetch(path, { credentials: 'include' });
@@ -13,7 +14,7 @@ export default function LeaderboardsPage() {
 
   useEffect(() => {
     let cancelled = false;
-    apiFetch('/api/games/leaderboard')
+    apiFetch(`/api/games/leaderboard?date=${todayDateString()}`)
       .then((d) => { if (!cancelled) setData(d); })
       .catch(() => { if (!cancelled) setData(null); })
       .finally(() => { if (!cancelled) setLoading(false); });

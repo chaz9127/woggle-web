@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Modal from '../components/Modal';
 import { useAuth } from './AuthContext';
 
-export default function AuthModal({ open, onClose }) {
-  const [mode, setMode] = useState('signin');
+export default function AuthModal({ open, onClose, initialMode = 'signin' }) {
+  const [mode, setMode] = useState(initialMode);
+  useEffect(() => { if (open) setMode(initialMode); }, [open, initialMode]);
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');

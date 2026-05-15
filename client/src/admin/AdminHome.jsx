@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { todayDateString } from '../utils/random';
 
 function StatCard({ label, value, sub }) {
   return (
@@ -16,7 +17,7 @@ export default function AdminHome() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/admin/stats', { credentials: 'include' })
+    fetch(`/api/admin/stats?date=${todayDateString()}`, { credentials: 'include' })
       .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
       .then(({ ok, data }) => {
         if (cancelled) return;

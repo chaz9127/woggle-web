@@ -67,8 +67,9 @@ function buildAdminRouter() {
 
   router.use(requireAuth, requireAdmin);
 
-  router.get("/stats", (_req, res) => {
-    const today = utcToday();
+  router.get("/stats", (req, res) => {
+    const requested = String(req.query?.date || "");
+    const today = /^\d{4}-\d{2}-\d{2}$/.test(requested) ? requested : utcToday();
     const lifetime = statsLifetimeHigh.get();
     const todayHigh = statsTodayHigh.get(today);
     res.json({

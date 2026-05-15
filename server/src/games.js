@@ -183,6 +183,20 @@ function yesterdayOf(dateStr) {
   return d.toISOString().slice(0, 10);
 }
 
+function tomorrowOf(dateStr) {
+  const d = new Date(dateStr + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+function isAcceptableLocalDate(dateStr) {
+  if (!DATE_RE.test(dateStr)) return false;
+  const today = utcToday();
+  return dateStr === today
+    || dateStr === yesterdayOf(today)
+    || dateStr === tomorrowOf(today);
+}
+
 function effectiveStreak(user) {
   if (!user.last_completed_date) return 0;
   const today = utcToday();
@@ -226,12 +240,8 @@ function buildGamesRouter() {
   router.post("/complete", (req, res) => {
     const gameDate = String(req.body?.gameDate || "");
     const words = Array.isArray(req.body?.words) ? req.body.words : null;
-    if (!DATE_RE.test(gameDate)) {
+    if (!isAcceptableLocalDate(gameDate)) {
       return res.status(400).json({ error: "Invalid gameDate" });
-    }
-    const today = utcToday();
-    if (gameDate !== today && gameDate !== yesterdayOf(today)) {
-      return res.status(400).json({ error: "gameDate must be today or yesterday (UTC)" });
     }
     if (!words) {
       return res.status(400).json({ error: "words must be an array" });
@@ -287,7 +297,8 @@ function buildGamesRouter() {
       wordCount: g.word_count,
       completedAt: g.completed_at,
     }));
-    const today = utcToday();
+    const requested = String(req.query?.date || "");
+    const today = isAcceptableLocalDate(requested) ? requested : utcToday();
     const todayGame = findGame.get(req.user.id, today);
     const highestGameScore = highestGameScoreStmt.get(req.user.id)?.best || 0;
     const highest = highestWordStmt.get(req.user.id);
@@ -307,8 +318,9 @@ function buildGamesRouter() {
     });
   });
 
-  router.get("/leaderboard", (_req, res) => {
-    const today = utcToday();
+  router.get("/leaderboard", (req, res) => {
+    const requested = String(req.query?.date || "");
+    const today = isAcceptableLocalDate(requested) ? requested : utcToday();
     res.json({
       allTime: leaderboardAllTime.all().map((g) => ({
         username: g.username,

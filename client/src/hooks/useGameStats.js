@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
+import { todayDateString } from '../utils/random';
 
 async function apiFetch(path, opts = {}) {
   const res = await fetch(path, {
@@ -33,7 +34,7 @@ export function useGameStats() {
     }
     setLoading(true);
     try {
-      const data = await apiFetch('/api/games/me');
+      const data = await apiFetch(`/api/games/me?date=${todayDateString()}`);
       setStats(data.stats);
       setPlayedToday(!!data.playedToday);
       setTodayDate(data.todayDate);
