@@ -596,6 +596,8 @@
   color: inherit;
   font: inherit;
   cursor: pointer;
+  text-decoration: none;
+  box-sizing: border-box;
 }
 .header__menu-item:last-child {
   border-top: 1px solid var(--border);

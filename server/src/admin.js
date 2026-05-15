@@ -35,6 +35,10 @@ const statsTotalGames = db.prepare(
   "SELECT COUNT(*) AS n FROM user_games WHERE completed_at IS NOT NULL"
 );
 const statsTotalWords = db.prepare("SELECT COUNT(*) AS n FROM words");
+const statsGamesToday = db.prepare(
+  "SELECT COUNT(*) AS n FROM user_games WHERE completed_at IS NOT NULL AND game_date = ?"
+);
+const statsTotalSignups = db.prepare("SELECT COUNT(*) AS n FROM users");
 const statsLifetimeHigh = db.prepare(`
   SELECT u.username, g.score, g.game_date
   FROM user_games g
@@ -74,7 +78,9 @@ function buildAdminRouter() {
     const todayHigh = statsTodayHigh.get(today);
     res.json({
       totalGames: statsTotalGames.get().n,
+      gamesToday: statsGamesToday.get(today).n,
       totalWords: statsTotalWords.get().n,
+      totalSignups: statsTotalSignups.get().n,
       lifetimeHigh: lifetime
         ? { username: lifetime.username, score: lifetime.score, gameDate: lifetime.game_date }
         : null,

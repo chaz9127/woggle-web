@@ -112,6 +112,15 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
                 >
                   Stats
                 </button>
+                {user.role === 'admin' && (
+                  <a
+                    href="/admin"
+                    className="header__menu-item"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Admin
+                  </a>
+                )}
                 <button
                   type="button"
                   className="header__menu-item"

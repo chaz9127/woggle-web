@@ -43,6 +43,14 @@ export default function AdminHome() {
           value={stats.totalGames.toLocaleString()}
         />
         <StatCard
+          label="Games completed today"
+          value={(stats.gamesToday ?? 0).toLocaleString()}
+        />
+        <StatCard
+          label="Total sign ups"
+          value={(stats.totalSignups ?? 0).toLocaleString()}
+        />
+        <StatCard
           label="Words in dictionary"
           value={stats.totalWords.toLocaleString()}
         />
