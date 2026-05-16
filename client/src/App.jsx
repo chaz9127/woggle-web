@@ -80,7 +80,7 @@ export default function App() {
       setPlayedCookieActive(true);
     }
 
-    submitCompletion(dateStr, foundWords.map((w) => w.word));
+    submitCompletion(dateStr, foundWords);
   }, [phase, dateStr, foundWords, submitCompletion, overrideActive, user]);
 
   useEffect(() => {

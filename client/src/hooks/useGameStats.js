@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { todayDateString } from '../utils/random';
+import { hasResult, saveResult } from '../utils/gameStorage';
 
 async function apiFetch(path, opts = {}) {
   const res = await fetch(path, {
@@ -35,6 +36,17 @@ export function useGameStats() {
     setLoading(true);
     try {
       const data = await apiFetch(`/api/games/me?date=${todayDateString()}`);
+      const todayDateValue = data.todayDate || todayDateString();
+      // Cross-device hydration: if backend has today's completed game but this
+      // device's local cache is empty, seed the cache so the share grid and
+      // word list render without re-fetching.
+      if (
+        data.playedToday &&
+        Array.isArray(data.todayGame?.foundWords) &&
+        !hasResult(todayDateValue)
+      ) {
+        saveResult(todayDateValue, data.todayGame.foundWords);
+      }
       setStats(data.stats);
       setPlayedToday(!!data.playedToday);
       setTodayDate(data.todayDate);

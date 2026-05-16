@@ -2,40 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { generateBoard, isAdjacent } from "../utils/board";
 import { todayDateString } from "../utils/random";
 import { scrabbleScore, tilesToWord, tilesToLetterCount } from "../utils/scoring";
+import { loadResult, saveResult, clearResult } from "../utils/gameStorage";
 import { checkWord, suggestWord } from "./useDictionary";
 
 export const GAME_DURATION_SECONDS = 120;
-const RESULT_KEY_PREFIX = "woggle-result-";
-
-function loadResult(dateStr) {
-  try {
-    const raw = localStorage.getItem(RESULT_KEY_PREFIX + dateStr);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed?.foundWords) ? parsed.foundWords : null;
-  } catch {
-    return null;
-  }
-}
-
-function saveResult(dateStr, foundWords) {
-  try {
-    localStorage.setItem(
-      RESULT_KEY_PREFIX + dateStr,
-      JSON.stringify({ foundWords })
-    );
-  } catch {
-    // ignore storage errors (quota / privacy mode)
-  }
-}
-
-function clearResult(dateStr) {
-  try {
-    localStorage.removeItem(RESULT_KEY_PREFIX + dateStr);
-  } catch {
-    // ignore
-  }
-}
 
 export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
   const dateStr = useMemo(() => todayDateString(), []);

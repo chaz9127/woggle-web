@@ -237,14 +237,31 @@ function buildGamesRouter() {
     let highestWord = null;
     let highestWordScore = 0;
     for (const raw of words) {
-      if (typeof raw !== "string") continue;
-      const w = raw.toLowerCase().trim();
+      let candidate;
+      let tileIds = [];
+      let letterCount = null;
+      if (typeof raw === "string") {
+        candidate = raw;
+      } else if (raw && typeof raw === "object" && typeof raw.word === "string") {
+        candidate = raw.word;
+        if (Array.isArray(raw.tileIds)) {
+          tileIds = raw.tileIds
+            .filter((id) => Number.isInteger(id) && id >= 0 && id < 16)
+            .slice(0, 16);
+        }
+        if (Number.isInteger(raw.letterCount) && raw.letterCount > 0 && raw.letterCount <= 32) {
+          letterCount = raw.letterCount;
+        }
+      } else {
+        continue;
+      }
+      const w = candidate.toLowerCase().trim();
       if (!/^[a-z]{3,16}$/.test(w)) continue;
       if (seen.has(w)) continue;
       if (!wordExists.get(w)) continue;
       seen.add(w);
-      accepted.push(w);
       const ws = scoreWord(w);
+      accepted.push({ word: w, scrabble: ws, tileIds, letterCount: letterCount ?? w.length });
       score += ws;
       if (ws > highestWordScore || (ws === highestWordScore && w.length > (highestWord?.length || 0))) {
         highestWord = w;
@@ -286,6 +303,37 @@ function buildGamesRouter() {
     const todayGame = findGame.get(req.user.id, today);
     const highestGameScore = highestGameScoreStmt.get(req.user.id)?.best || 0;
     const highest = highestWordStmt.get(req.user.id);
+
+    let todayFoundWords = [];
+    if (todayGame?.completed_at && todayGame.found_words) {
+      try {
+        const parsed = JSON.parse(todayGame.found_words);
+        if (Array.isArray(parsed)) {
+          todayFoundWords = parsed
+            .map((entry) => {
+              if (typeof entry === "string") {
+                return {
+                  word: entry,
+                  scrabble: scoreWord(entry),
+                  tileIds: [],
+                  letterCount: entry.length,
+                };
+              }
+              if (!entry || typeof entry.word !== "string") return null;
+              return {
+                word: entry.word,
+                scrabble: Number(entry.scrabble) || scoreWord(entry.word),
+                tileIds: Array.isArray(entry.tileIds) ? entry.tileIds : [],
+                letterCount: Number(entry.letterCount) || entry.word.length,
+              };
+            })
+            .filter(Boolean);
+        }
+      } catch {
+        // ignore malformed legacy payloads
+      }
+    }
+
     res.json({
       stats: {
         totalGames: stats.total_games,
@@ -298,6 +346,14 @@ function buildGamesRouter() {
       },
       playedToday: !!(todayGame && todayGame.completed_at),
       todayDate: today,
+      todayGame: todayGame?.completed_at
+        ? {
+            gameDate: today,
+            score: todayGame.score,
+            wordCount: todayGame.word_count,
+            foundWords: todayFoundWords,
+          }
+        : null,
       recent,
     });
   });
