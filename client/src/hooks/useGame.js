@@ -106,12 +106,19 @@ export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
     setSuggested(false);
     setSuccessPoints(null);
     setSelection((prev) => {
-      if (prev.length === 0) return [tile];
-      const last = prev[prev.length - 1];
-      if (last.id === tile.id) return prev.slice(0, -1);
-      if (prev.some((t) => t.id === tile.id)) return prev;
-      if (!isAdjacent(last, tile)) return prev;
-      return [...prev, tile];
+      let next;
+      if (prev.length === 0) next = [tile];
+      else {
+        const last = prev[prev.length - 1];
+        if (last.id === tile.id) next = prev.slice(0, -1);
+        else if (prev.some((t) => t.id === tile.id)) next = prev;
+        else if (!isAdjacent(last, tile)) next = prev;
+        else next = [...prev, tile];
+      }
+      if (next !== prev && typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate(15);
+      }
+      return next;
     });
   }, []);
 
