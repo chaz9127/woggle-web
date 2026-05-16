@@ -176,18 +176,17 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 2;
+  z-index: 0;
+}
+.board__grid {
+  z-index: 1;
 }
 .board__path {
   fill: none;
   stroke: var(--path);
-  stroke-width: 6;
+  stroke-width: 10;
   stroke-linecap: round;
   stroke-linejoin: round;
-  opacity: 0.75;
-}
-.board__node {
-  fill: var(--path);
   opacity: 0.9;
 }
 

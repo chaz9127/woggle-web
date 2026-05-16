@@ -104,9 +104,6 @@ export default function Board({ board, selection, onSelect }) {
             points={points.map((p) => `${p.x},${p.y}`).join(' ')}
           />
         )}
-        {points.map((p, i) => (
-          <circle key={i} className="board__node" cx={p.x} cy={p.y} r={6} />
-        ))}
       </svg>
       <div className="board__grid">
         {board.map((tile) => (
