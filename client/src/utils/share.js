@@ -16,12 +16,7 @@ export function buildShareText({ board, foundWords, totals, dateStr, theme }) {
     rows.push(row);
   }
 
-  return [
-    `Woggle ${dateStr}`,
-    `${foundWords.length} word${foundWords.length === 1 ? "" : "s"} · ${totals.scrabble} pts`,
-    "",
-    ...rows,
-  ].join("\n");
+  return [`Woggle,xyz ${dateStr}`, `${foundWords.length} word${foundWords.length === 1 ? "" : "s"} · ${totals.scrabble} pts`, "", ...rows].join("\n");
 }
 
 export async function copyToClipboard(text) {
