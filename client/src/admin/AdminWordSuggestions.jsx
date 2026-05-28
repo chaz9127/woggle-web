@@ -93,6 +93,7 @@ export default function AdminWordSuggestions({ onPendingCountChange } = {}) {
             <thead>
               <tr>
                 <th>Word</th>
+                <th>Submitted by</th>
                 <th>Submitted</th>
                 <th>
                   <div className="admin__th-filter">
@@ -113,11 +114,12 @@ export default function AdminWordSuggestions({ onPendingCountChange } = {}) {
             </thead>
             <tbody>
               {visible.length === 0 && (
-                <tr><td colSpan={3} className="admin__empty">No suggestions match this filter.</td></tr>
+                <tr><td colSpan={4} className="admin__empty">No suggestions match this filter.</td></tr>
               )}
               {visible.map((s) => (
                 <tr key={s.word}>
                   <td><strong>{s.word.toUpperCase()}</strong></td>
+                  <td className="admin__muted">{s.user_email || '—'}</td>
                   <td className="admin__muted">{s.created_at}</td>
                   <td>
                     <select

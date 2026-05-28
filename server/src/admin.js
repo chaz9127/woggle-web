@@ -14,11 +14,13 @@ const updateRole = db.prepare("UPDATE users SET role = ? WHERE id = ?");
 const findUser = db.prepare("SELECT id, email, username, role FROM users WHERE id = ?");
 
 const listSuggestions = db.prepare(`
-  SELECT word, status, created_at, updated_at
-  FROM word_suggestions
+  SELECT s.word, s.status, s.created_at, s.updated_at,
+         s.user_id, u.email AS user_email, u.username AS user_username
+  FROM word_suggestions s
+  LEFT JOIN users u ON u.id = s.user_id
   ORDER BY
-    CASE status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 ELSE 2 END,
-    created_at DESC
+    CASE s.status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 ELSE 2 END,
+    s.created_at DESC
 `);
 const updateSuggestionStatus = db.prepare(
   "UPDATE word_suggestions SET status = ? WHERE word = ?"

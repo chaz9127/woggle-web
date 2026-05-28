@@ -40,6 +40,7 @@ db.exec(`
 db.exec(`
   CREATE TABLE IF NOT EXISTS word_suggestions (
     word TEXT PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'denied', 'approved')),
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -50,6 +51,9 @@ const suggestionsCols = db
   .prepare("PRAGMA table_info(word_suggestions)")
   .all()
   .map((c) => c.name);
+if (!suggestionsCols.includes("user_id")) {
+  db.exec("ALTER TABLE word_suggestions ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE SET NULL");
+}
 if (suggestionsCols.includes("approved") && !suggestionsCols.includes("status")) {
   db.exec(`
     BEGIN;
@@ -82,7 +86,7 @@ db.exec(`
 
 const selectStmt = db.prepare("SELECT 1 FROM words WHERE word = ?");
 const insertStmt = db.prepare("INSERT OR IGNORE INTO words(word) VALUES (?)");
-const insertSuggestionStmt = db.prepare("INSERT OR IGNORE INTO word_suggestions(word) VALUES (?)");
+const insertSuggestionStmt = db.prepare("INSERT OR IGNORE INTO word_suggestions(word, user_id) VALUES (?, ?)");
 
 const UPSTREAM = "https://api.dictionaryapi.dev/api/v2/entries/en/";
 const TIMEOUT_MS = 4000;
@@ -133,7 +137,8 @@ function handleWordSuggest(req, res) {
   if (!word || !/^[a-z]{1,16}$/.test(word)) {
     return res.status(400).end();
   }
-  insertSuggestionStmt.run(word);
+  const userId = req.user?.id ?? null;
+  insertSuggestionStmt.run(word, userId);
   res.status(204).end();
 }
 
