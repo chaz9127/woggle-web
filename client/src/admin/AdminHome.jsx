@@ -43,16 +43,21 @@ export default function AdminHome() {
           value={stats.totalGames.toLocaleString()}
         />
         <StatCard
+          label="Most games in a day"
+          value={stats.busiestDay ? stats.busiestDay.count.toLocaleString() : '—'}
+          sub={stats.busiestDay ? stats.busiestDay.gameDate : 'No games yet'}
+        />
+        <StatCard
           label="Games completed today"
           value={(stats.gamesToday ?? 0).toLocaleString()}
         />
         <StatCard
-          label="Total sign ups"
-          value={(stats.totalSignups ?? 0).toLocaleString()}
-        />
-        <StatCard
           label="Words in dictionary"
           value={stats.totalWords.toLocaleString()}
+        />
+        <StatCard
+          label="Total sign ups"
+          value={(stats.totalSignups ?? 0).toLocaleString()}
         />
         <StatCard
           label="Lifetime high score"
@@ -67,11 +72,6 @@ export default function AdminHome() {
           label="Today's high score"
           value={stats.todayHigh ? stats.todayHigh.score.toLocaleString() : '—'}
           sub={stats.todayHigh ? stats.todayHigh.username : 'No games today'}
-        />
-        <StatCard
-          label="Most games in a day"
-          value={stats.busiestDay ? stats.busiestDay.count.toLocaleString() : '—'}
-          sub={stats.busiestDay ? stats.busiestDay.gameDate : 'No games yet'}
         />
       </div>
     </div>
