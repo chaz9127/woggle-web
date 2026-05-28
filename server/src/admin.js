@@ -55,6 +55,14 @@ const statsTodayHigh = db.prepare(`
   ORDER BY g.score DESC, g.completed_at ASC
   LIMIT 1
 `);
+const statsBusiestDay = db.prepare(`
+  SELECT game_date, COUNT(*) AS n
+  FROM user_games
+  WHERE completed_at IS NOT NULL
+  GROUP BY game_date
+  ORDER BY n DESC, game_date DESC
+  LIMIT 1
+`);
 
 function utcToday() {
   return new Date().toISOString().slice(0, 10);
@@ -76,6 +84,7 @@ function buildAdminRouter() {
     const today = /^\d{4}-\d{2}-\d{2}$/.test(requested) ? requested : utcToday();
     const lifetime = statsLifetimeHigh.get();
     const todayHigh = statsTodayHigh.get(today);
+    const busiest = statsBusiestDay.get();
     res.json({
       totalGames: statsTotalGames.get().n,
       gamesToday: statsGamesToday.get(today).n,
@@ -86,6 +95,9 @@ function buildAdminRouter() {
         : null,
       todayHigh: todayHigh
         ? { username: todayHigh.username, score: todayHigh.score }
+        : null,
+      busiestDay: busiest
+        ? { gameDate: busiest.game_date, count: busiest.n }
         : null,
       todayDate: today,
     });

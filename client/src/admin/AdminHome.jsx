@@ -68,6 +68,11 @@ export default function AdminHome() {
           value={stats.todayHigh ? stats.todayHigh.score.toLocaleString() : '—'}
           sub={stats.todayHigh ? stats.todayHigh.username : 'No games today'}
         />
+        <StatCard
+          label="Most games in a day"
+          value={stats.busiestDay ? stats.busiestDay.count.toLocaleString() : '—'}
+          sub={stats.busiestDay ? stats.busiestDay.gameDate : 'No games yet'}
+        />
       </div>
     </div>
   );
