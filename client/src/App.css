@@ -803,6 +803,26 @@
   max-width: 1200px;
   margin: 0 auto;
 }
+.admin--nav-collapsed {
+  grid-template-columns: 44px 1fr;
+  gap: 12px;
+}
+.admin__nav-toggle {
+  align-self: flex-end;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.admin__nav-toggle:hover { background: var(--surface); }
+.admin--nav-collapsed .admin__nav-toggle { align-self: center; }
 .admin__nav {
   border-right: 1px solid var(--border);
   display: flex;
