@@ -19,6 +19,13 @@ export function buildShareText({ board, foundWords, totals, dateStr, theme }) {
   return [`Woggle.xyz ${dateStr}`, `${foundWords.length} word${foundWords.length === 1 ? "" : "s"} · ${totals.scrabble} pts`, "", ...rows].join("\n");
 }
 
+export function buildWordsText({ foundWords, totals, dateStr }) {
+  const header = `Woggle.xyz ${dateStr} · ${foundWords.length} word${foundWords.length === 1 ? '' : 's'} · ${totals.scrabble} pts`;
+  const sorted = [...foundWords].sort((a, b) => b.scrabble - a.scrabble);
+  const lines = sorted.map((w) => `${w.word.toUpperCase()} (${w.scrabble})`);
+  return [header, '', ...lines].join('\n');
+}
+
 export async function copyToClipboard(text) {
   try {
     if (navigator.clipboard?.writeText) {

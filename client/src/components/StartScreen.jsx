@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { buildShareText, copyToClipboard } from "../utils/share";
+import { buildShareText, buildWordsText, copyToClipboard } from "../utils/share";
 import { useAuth } from "../auth/AuthContext";
 
 export default function StartScreen({
@@ -17,6 +17,7 @@ export default function StartScreen({
 }) {
   const locked = phase === "locked" || lockedProp;
   const [shareStatus, setShareStatus] = useState("");
+  const [wordsStatus, setWordsStatus] = useState("");
   const { user } = useAuth();
   const isPrivileged = user?.role === "admin" || user?.role === "tester";
 
@@ -30,6 +31,13 @@ export default function StartScreen({
     const ok = await copyToClipboard(text);
     setShareStatus(ok ? "Copied!" : "Copy failed");
     setTimeout(() => setShareStatus(""), 1800);
+  };
+
+  const handleCopyWords = async () => {
+    const text = buildWordsText({ foundWords, totals, dateStr });
+    const ok = await copyToClipboard(text);
+    setWordsStatus(ok ? "Copied!" : "Copy failed");
+    setTimeout(() => setWordsStatus(""), 1800);
   };
 
   return (
@@ -78,7 +86,15 @@ export default function StartScreen({
               className="btn btn--primary"
               onClick={handleShare}
             >
-              {shareStatus || "Share"}
+              {shareStatus || "Share my score"}
+            </button>
+            <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={handleCopyWords}
+              disabled={foundWords.length === 0}
+            >
+              {wordsStatus || "Copy my words"}
             </button>
           </>
         ) : (
