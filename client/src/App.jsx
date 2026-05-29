@@ -7,6 +7,7 @@ import StatsModal from './components/StatsModal';
 import LeaderboardsPage from './components/LeaderboardsPage';
 import SummaryModal from './components/SummaryModal';
 import StartScreen from './components/StartScreen';
+import WhySignUpModal from './components/WhySignUpModal';
 import AuthModal from './auth/AuthModal';
 import ChooseUsername from './auth/ChooseUsername';
 import AdminPage from './admin/AdminPage';
@@ -62,6 +63,19 @@ export default function App() {
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState('signin');
   const [statsOpen, setStatsOpen] = useState(false);
+  const [whySignUpOpen, setWhySignUpOpen] = useState(false);
+  const [whySignUpDismissed, setWhySignUpDismissed] = useState(false);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (user) {
+      setWhySignUpOpen(false);
+      return;
+    }
+    if (locked && !whySignUpDismissed) {
+      setWhySignUpOpen(true);
+    }
+  }, [authLoading, user, locked, whySignUpDismissed]);
   const currentWord = tilesToWord(selection);
   const showTimer = phase === 'playing' || phase === 'done';
 
@@ -207,6 +221,19 @@ export default function App() {
       </main>
 
       <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
+      <WhySignUpModal
+        open={whySignUpOpen}
+        onClose={() => {
+          setWhySignUpOpen(false);
+          setWhySignUpDismissed(true);
+        }}
+        onSignUp={() => {
+          setWhySignUpOpen(false);
+          setWhySignUpDismissed(true);
+          setAuthMode('signup');
+          setAuthOpen(true);
+        }}
+      />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} initialMode={authMode} />
       <StatsModal open={statsOpen} onClose={() => setStatsOpen(false)} />
       <SummaryModal
