@@ -65,6 +65,7 @@ export default function App() {
   const [statsOpen, setStatsOpen] = useState(false);
   const [whySignUpOpen, setWhySignUpOpen] = useState(false);
   const [whySignUpDismissed, setWhySignUpDismissed] = useState(false);
+  const [boardRotation, setBoardRotation] = useState(0);
 
   useEffect(() => {
     if (authLoading) return;
@@ -194,7 +195,7 @@ export default function App() {
               )}
             </div>
 
-            <Board board={board} selection={selection} onSelect={selectTile} />
+            <Board board={board} selection={selection} onSelect={selectTile} rotation={boardRotation} />
 
             <div className="controls">
               <button
@@ -204,6 +205,16 @@ export default function App() {
                 disabled={selection.length === 0 || submitting || phase !== 'playing'}
               >
                 Clear
+              </button>
+              <button
+                type="button"
+                className="btn btn--ghost"
+                onClick={() => setBoardRotation((r) => (r + 1) % 4)}
+                disabled={phase !== 'playing'}
+                aria-label="Rotate board"
+                title="Rotate board"
+              >
+                ↻
               </button>
               <button
                 type="button"

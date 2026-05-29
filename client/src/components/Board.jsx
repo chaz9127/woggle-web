@@ -1,7 +1,17 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Tile from './Tile';
 
-export default function Board({ board, selection, onSelect }) {
+function rotatePosition(row, col, rotation, size = 4) {
+  const max = size - 1;
+  switch (((rotation % 4) + 4) % 4) {
+    case 1: return { row: col, col: max - row };
+    case 2: return { row: max - row, col: max - col };
+    case 3: return { row: max - col, col: row };
+    default: return { row, col };
+  }
+}
+
+export default function Board({ board, selection, onSelect, rotation = 0 }) {
   const containerRef = useRef(null);
   const tileRefs = useRef({});
   const [points, setPoints] = useState([]);
@@ -69,7 +79,7 @@ export default function Board({ board, selection, onSelect }) {
 
   useLayoutEffect(() => {
     computePoints();
-  }, [selection, board]);
+  }, [selection, board, rotation]);
 
   useEffect(() => {
     const onResize = () => computePoints();
@@ -106,20 +116,24 @@ export default function Board({ board, selection, onSelect }) {
         )}
       </svg>
       <div className="board__grid">
-        {board.map((tile) => (
-          <Tile
-            key={tile.id}
-            ref={(el) => {
-              if (el) tileRefs.current[tile.id] = el;
-              else delete tileRefs.current[tile.id];
-            }}
-            tile={tile}
-            selected={selectionMap.has(tile.id)}
-            selectionIndex={selectionMap.get(tile.id) ?? -1}
-            last={tile.id === lastId}
-            onClick={onSelect}
-          />
-        ))}
+        {board.map((tile) => {
+          const pos = rotatePosition(tile.row, tile.col, rotation);
+          return (
+            <Tile
+              key={tile.id}
+              ref={(el) => {
+                if (el) tileRefs.current[tile.id] = el;
+                else delete tileRefs.current[tile.id];
+              }}
+              tile={tile}
+              selected={selectionMap.has(tile.id)}
+              selectionIndex={selectionMap.get(tile.id) ?? -1}
+              last={tile.id === lastId}
+              onClick={onSelect}
+              style={{ gridRow: pos.row + 1, gridColumn: pos.col + 1 }}
+            />
+          );
+        })}
       </div>
     </div>
   );
