@@ -37,7 +37,9 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
   return (
     <header className="header">
       <h1 className="header__title">
-        <a href="/" className="header__title-link">Woggle</a>
+        <a href="/" className="header__title-link" aria-label="Woggle">
+          <img src="/logo.png" alt="Woggle" className="header__logo" />
+        </a>
       </h1>
       <div
         className={`header__timer ${low ? "header__timer--low" : ""}`}

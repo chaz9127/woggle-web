@@ -148,18 +148,13 @@ export default function App() {
           />
         ) : (
           <>
-            <div className="date-row">Daily puzzle · {dateStr}</div>
-
-            <div className="scoreboard">
-              <div><span>Score</span><strong>{totals.scrabble}</strong></div>
-              <div><span>Words</span><strong>{foundWords.length}</strong></div>
-            </div>
-
-            <div className={`current-word ${error ? 'current-word--error' : ''} ${successPoints != null ? 'current-word--success' : ''}`}>
+            <div className={`scoreboard ${error ? 'scoreboard--error' : ''} ${successPoints != null ? 'scoreboard--success' : ''}`}>
               {successPoints != null ? (
-                <span>{successPoints} {successPoints === 1 ? 'point' : 'points'}!</span>
+                <div className="scoreboard__alert">
+                  <span>{successPoints} {successPoints === 1 ? 'point' : 'points'}!</span>
+                </div>
               ) : error ? (
-                <>
+                <div className="scoreboard__alert">
                   <span>{error}</span>
                   {invalidWord && (
                     suggested ? (
@@ -174,13 +169,14 @@ export default function App() {
                       </button>
                     )
                   )}
-                </>
+                </div>
+              ) : currentWord ? (
+                <div className="scoreboard__current">{currentWord}</div>
               ) : (
-                currentWord || (
-                  <span className="current-word__placeholder">
-                    Tap letters to build a word
-                  </span>
-                )
+                <>
+                  <div><span>Score</span><strong>{totals.scrabble}</strong></div>
+                  <div><span>Words</span><strong>{foundWords.length}</strong></div>
+                </>
               )}
             </div>
 
