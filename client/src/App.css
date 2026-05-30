@@ -819,6 +819,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  margin-right: 10px;
 }
 .admin__nav-toggle:hover { background: var(--surface); }
 .admin--nav-collapsed .admin__nav-toggle { align-self: center; }
