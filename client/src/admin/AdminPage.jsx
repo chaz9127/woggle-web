@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import AdminHome from './AdminHome';
 import AdminUsers from './AdminUsers';
 import AdminWordSuggestions from './AdminWordSuggestions';
+import AdminVisualizations from './AdminVisualizations';
 
 export default function AdminPage() {
   const [active, setActive] = useState('home');
@@ -30,6 +31,7 @@ export default function AdminPage() {
       badge: pendingCount,
       render: () => <AdminWordSuggestions onPendingCountChange={setPendingCount} />,
     },
+    { key: 'visualizations', label: 'Visualizations', render: () => <AdminVisualizations /> },
   ];
   const current = NAV.find((n) => n.key === active) || NAV[0];
 

@@ -65,9 +65,34 @@ const statsBusiestDay = db.prepare(`
   ORDER BY n DESC, game_date DESC
   LIMIT 1
 `);
+const gamesPlayedRange = db.prepare(`
+  SELECT game_date, COUNT(*) AS n
+  FROM user_games
+  WHERE completed_at IS NOT NULL
+    AND game_date >= ?
+    AND game_date <= ?
+  GROUP BY game_date
+  ORDER BY game_date ASC
+`);
 
 function utcToday() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function rangeStart(range, todayStr) {
+  const d = new Date(todayStr + "T00:00:00Z");
+  if (range === "year") {
+    return `${d.getUTCFullYear()}-01-01`;
+  }
+  if (range === "month") {
+    const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+    return `${d.getUTCFullYear()}-${m}-01`;
+  }
+  // week: Monday of the current ISO week (UTC)
+  const dow = d.getUTCDay(); // 0=Sun..6=Sat
+  const daysSinceMonday = (dow + 6) % 7;
+  d.setUTCDate(d.getUTCDate() - daysSinceMonday);
+  return d.toISOString().slice(0, 10);
 }
 
 function requireAdmin(req, res, next) {
@@ -102,6 +127,21 @@ function buildAdminRouter() {
         ? { gameDate: busiest.game_date, count: busiest.n }
         : null,
       todayDate: today,
+    });
+  });
+
+  router.get("/visualizations/games-played", (req, res) => {
+    const range = ["week", "month", "year"].includes(req.query?.range)
+      ? req.query.range
+      : "week";
+    const end = utcToday();
+    const start = rangeStart(range, end);
+    const rows = gamesPlayedRange.all(start, end);
+    res.json({
+      range,
+      start,
+      end,
+      days: rows.map((r) => ({ date: r.game_date, count: r.n })),
     });
   });
 
