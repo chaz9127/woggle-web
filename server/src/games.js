@@ -10,8 +10,17 @@ const LETTER_VALUE = {
 
 function scoreWord(word) {
   let sum = 0;
-  for (const ch of word.toUpperCase()) {
-    sum += LETTER_VALUE[ch] ?? 0;
+  const upper = word.toUpperCase();
+  for (let i = 0; i < upper.length; i++) {
+    // "Qu" is a single Boggle tile worth 10. Every Q on the board comes from a
+    // Qu die face (there is no standalone Q), so a Q is always followed by a U
+    // from the same tile and must be scored as one tile, not Q(10) + U(1).
+    if (upper[i] === "Q" && upper[i + 1] === "U") {
+      sum += LETTER_VALUE.Q;
+      i++; // consume the U that belongs to the Qu tile
+      continue;
+    }
+    sum += LETTER_VALUE[upper[i]] ?? 0;
   }
   return sum;
 }
