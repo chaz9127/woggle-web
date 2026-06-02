@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Trophy } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 
 export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, onOpenStats, onOpenLeaderboard, remaining, showTimer }) {
@@ -32,8 +32,6 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
     return () => document.removeEventListener('mousedown', onDoc);
   }, [menuOpen]);
 
-  const initial = (user?.username || user?.email || '?').slice(0, 1).toUpperCase();
-
   return (
     <header className="header">
       <h1 className="header__title">
@@ -59,81 +57,7 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
         >
           ?
         </button>
-        <button
-          type="button"
-          className="icon-btn"
-          onClick={onToggleTheme}
-          aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-          title="Toggle theme"
-        >
-          {theme === "dark" ? "☀" : "☾"}
-        </button>
-        <button
-          type="button"
-          className="icon-btn"
-          onClick={onOpenLeaderboard}
-          aria-label="Leaderboard"
-          title="Leaderboard"
-        >
-          <Trophy size={18} aria-hidden="true" />
-        </button>
-        {user ? (
-          <div className="header__account" ref={menuRef}>
-            <button
-              type="button"
-              className="icon-btn icon-btn--avatar"
-              onClick={() => setMenuOpen((v) => !v)}
-              aria-label="Account menu"
-              title={user.username || user.email}
-            >
-              {initial}
-            </button>
-            {menuOpen && (
-              <div className="header__menu" role="menu">
-                <div className="header__menu-user">
-                  <strong>{user.username || '(no username)'}</strong>
-                  <span>{user.email}</span>
-                </div>
-                <label className="header__menu-item header__menu-toggle">
-                  <span>Clear after invalid word</span>
-                  <span className={`switch ${user.clearAfterInvalid ? 'switch--on' : ''} ${prefBusy ? 'switch--busy' : ''}`}>
-                    <input
-                      type="checkbox"
-                      className="switch__input"
-                      checked={!!user.clearAfterInvalid}
-                      disabled={prefBusy}
-                      onChange={toggleClearAfterInvalid}
-                    />
-                    <span className="switch__thumb" />
-                  </span>
-                </label>
-                <button
-                  type="button"
-                  className="header__menu-item"
-                  onClick={() => { setMenuOpen(false); onOpenStats?.(); }}
-                >
-                  Stats
-                </button>
-                {user.role === 'admin' && (
-                  <a
-                    href="/admin"
-                    className="header__menu-item"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Admin
-                  </a>
-                )}
-                <button
-                  type="button"
-                  className="header__menu-item"
-                  onClick={() => { setMenuOpen(false); logout(); }}
-                >
-                  Sign out
-                </button>
-              </div>
-            )}
-          </div>
-        ) : (
+        {!user && (
           <button
             type="button"
             className="btn btn--ghost btn--inline"
@@ -142,6 +66,90 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
             Sign in
           </button>
         )}
+        <div className="header__account" ref={menuRef}>
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label="Menu"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            title="Menu"
+          >
+            <Menu size={18} aria-hidden="true" />
+          </button>
+          {menuOpen && (
+            <div className="header__menu" role="menu">
+              {user && (
+                <div className="header__menu-user">
+                  <strong>{user.username || '(no username)'}</strong>
+                  <span>{user.email}</span>
+                </div>
+              )}
+              <button
+                type="button"
+                className="header__menu-item"
+                onClick={() => { setMenuOpen(false); onOpenLeaderboard?.(); }}
+              >
+                Leaderboard
+              </button>
+              {user && (
+                <>
+                  <button
+                    type="button"
+                    className="header__menu-item"
+                    onClick={() => { setMenuOpen(false); onOpenStats?.(); }}
+                  >
+                    Stats
+                  </button>
+                  {user.role === 'admin' && (
+                    <a
+                      href="/admin"
+                      className="header__menu-item"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Admin
+                    </a>
+                  )}
+                  <label className="header__menu-item header__menu-toggle">
+                    <span>Clear after invalid word</span>
+                    <span className={`switch ${user.clearAfterInvalid ? 'switch--on' : ''} ${prefBusy ? 'switch--busy' : ''}`}>
+                      <input
+                        type="checkbox"
+                        className="switch__input"
+                        checked={!!user.clearAfterInvalid}
+                        disabled={prefBusy}
+                        onChange={toggleClearAfterInvalid}
+                      />
+                      <span className="switch__thumb" />
+                    </span>
+                  </label>
+                </>
+              )}
+              <label className="header__menu-item header__menu-toggle">
+                <span>Dark mode</span>
+                <span className={`switch ${theme === 'dark' ? 'switch--on' : ''}`}>
+                  <input
+                    type="checkbox"
+                    className="switch__input"
+                    checked={theme === 'dark'}
+                    onChange={onToggleTheme}
+                  />
+                  <span className="switch__thumb" />
+                </span>
+              </label>
+              {user && (
+                <button
+                  type="button"
+                  className="header__menu-item"
+                  onClick={() => { setMenuOpen(false); logout(); }}
+                >
+                  Sign out
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
