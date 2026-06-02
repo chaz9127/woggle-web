@@ -611,6 +611,63 @@
   cursor: pointer;
 }
 
+/* New-feature tooltip */
+.feature-tooltip {
+  position: fixed;
+  width: 240px;
+  padding: 12px 34px 12px 14px;
+  background: var(--accent, #4a7);
+  color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 20;
+  font-size: 13px;
+  animation: feature-tooltip-in 0.2s ease;
+}
+.feature-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: var(--caret-left, 24px);
+  width: 12px;
+  height: 12px;
+  background: inherit;
+  border-radius: 2px;
+  transform: translateX(-50%) rotate(45deg);
+}
+.feature-tooltip__title {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.feature-tooltip__body {
+  margin: 0;
+  line-height: 1.4;
+}
+.feature-tooltip__close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  opacity: 0.8;
+  border-radius: 4px;
+}
+.feature-tooltip__close:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.15);
+}
+@keyframes feature-tooltip-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Sliding switch */
 .switch {
   position: relative;

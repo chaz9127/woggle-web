@@ -1,5 +1,6 @@
 const PLAYED_COOKIE = 'woggle-played';
 const OVERRIDE_COOKIE = 'woggle-override';
+const TOOLTIP_PREFIX = 'woggle-tip-';
 
 function read(name) {
   const match = document.cookie
@@ -15,6 +16,12 @@ function writeUntilMidnight(name, value) {
   document.cookie = `${name}=${encodeURIComponent(value)}; expires=${tomorrow.toUTCString()}; path=/; SameSite=Lax`;
 }
 
+function writeForever(name, value) {
+  const expires = new Date();
+  expires.setFullYear(expires.getFullYear() + 5);
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+}
+
 function clear(name) {
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
 }
@@ -26,3 +33,6 @@ export function clearPlayedCookie() { clear(PLAYED_COOKIE); }
 export function getOverrideCookie() { return read(OVERRIDE_COOKIE); }
 export function setOverrideCookie(dateStr) { writeUntilMidnight(OVERRIDE_COOKIE, dateStr); }
 export function clearOverrideCookie() { clear(OVERRIDE_COOKIE); }
+
+export function isTooltipDismissed(name) { return read(`${TOOLTIP_PREFIX}${name}`) === '1'; }
+export function dismissTooltip(name) { writeForever(`${TOOLTIP_PREFIX}${name}`, '1'); }

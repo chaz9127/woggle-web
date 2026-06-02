@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { buildShareText, buildWordsText, copyToClipboard } from "../utils/share";
 import { useAuth } from "../auth/AuthContext";
+import FeatureTooltip from "./FeatureTooltip";
+import { featureTooltips } from "../config/featureTooltips";
 
 export default function StartScreen({
   dateStr,
@@ -114,12 +116,17 @@ export default function StartScreen({
             {!user && (
               <button
                 type="button"
+                id="start-signup-button"
                 className="btn btn--ghost start__signup"
                 onClick={onSignUp}
               >
                 Sign up
               </button>
             )}
+            <FeatureTooltip
+              config={featureTooltips.leaderboardSignUp}
+              context={{ user }}
+            />
           </>
         )}
 

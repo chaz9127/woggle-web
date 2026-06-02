@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Menu } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
+import FeatureTooltip from './FeatureTooltip';
+import { featureTooltips } from '../config/featureTooltips';
 
 export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, onOpenStats, onOpenLeaderboard, remaining, showTimer }) {
   const mm = String(Math.floor((remaining ?? 0) / 60)).padStart(1, "0");
@@ -81,6 +83,7 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
         <div className="header__account" ref={menuRef}>
           <button
             type="button"
+            id="header-menu-button"
             className="icon-btn"
             onClick={() => setMenuOpen((v) => !v)}
             aria-label="Menu"
@@ -90,6 +93,12 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
           >
             <Menu size={18} aria-hidden="true" />
           </button>
+          {!menuOpen && (
+            <FeatureTooltip
+              config={featureTooltips.submitAfterSwipe}
+              context={{ user }}
+            />
+          )}
           {menuOpen && (
             <div className="header__menu" role="menu">
               {user && (
