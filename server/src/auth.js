@@ -18,6 +18,7 @@ db.exec(`
     password_hash TEXT,
     google_id TEXT UNIQUE,
     clear_after_invalid INTEGER NOT NULL DEFAULT 0,
+    submit_after_swipe INTEGER NOT NULL DEFAULT 0,
     role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'tester', 'user')),
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -34,6 +35,11 @@ const userCols = db.prepare("PRAGMA table_info(users)").all().map((c) => c.name)
 if (!userCols.includes("role")) {
   db.exec(
     "ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'tester', 'user'))"
+  );
+}
+if (!userCols.includes("submit_after_swipe")) {
+  db.exec(
+    "ALTER TABLE users ADD COLUMN submit_after_swipe INTEGER NOT NULL DEFAULT 0"
   );
 }
 
@@ -56,6 +62,9 @@ const linkGoogleId = db.prepare(
 const updateClearAfterInvalid = db.prepare(
   "UPDATE users SET clear_after_invalid = ? WHERE id = ?"
 );
+const updateSubmitAfterSwipe = db.prepare(
+  "UPDATE users SET submit_after_swipe = ? WHERE id = ?"
+);
 
 function publicUser(u) {
   if (!u) return null;
@@ -67,6 +76,7 @@ function publicUser(u) {
     hasPassword: !!u.password_hash,
     googleLinked: !!u.google_id,
     clearAfterInvalid: !!u.clear_after_invalid,
+    submitAfterSwipe: !!u.submit_after_swipe,
   };
 }
 
@@ -226,11 +236,22 @@ function buildAuthRouter() {
   });
 
   router.patch("/preferences", requireAuth, (req, res) => {
-    const { clearAfterInvalid } = req.body || {};
-    if (typeof clearAfterInvalid !== "boolean") {
+    const { clearAfterInvalid, submitAfterSwipe } = req.body || {};
+    if (clearAfterInvalid !== undefined && typeof clearAfterInvalid !== "boolean") {
       return res.status(400).json({ error: "clearAfterInvalid must be boolean" });
     }
-    updateClearAfterInvalid.run(clearAfterInvalid ? 1 : 0, req.user.id);
+    if (submitAfterSwipe !== undefined && typeof submitAfterSwipe !== "boolean") {
+      return res.status(400).json({ error: "submitAfterSwipe must be boolean" });
+    }
+    if (clearAfterInvalid === undefined && submitAfterSwipe === undefined) {
+      return res.status(400).json({ error: "no preferences provided" });
+    }
+    if (clearAfterInvalid !== undefined) {
+      updateClearAfterInvalid.run(clearAfterInvalid ? 1 : 0, req.user.id);
+    }
+    if (submitAfterSwipe !== undefined) {
+      updateSubmitAfterSwipe.run(submitAfterSwipe ? 1 : 0, req.user.id);
+    }
     res.json({ user: publicUser(findById.get(req.user.id)) });
   });
 

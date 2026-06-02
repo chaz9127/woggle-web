@@ -11,12 +11,12 @@ function rotatePosition(row, col, rotation, size = 4) {
   }
 }
 
-export default function Board({ board, selection, onSelect, rotation = 0 }) {
+export default function Board({ board, selection, onSelect, onSwipeEnd, rotation = 0 }) {
   const containerRef = useRef(null);
   const tileRefs = useRef({});
   const [points, setPoints] = useState([]);
   const [size, setSize] = useState({ w: 0, h: 0 });
-  const dragRef = useRef({ active: false, lastId: null, suppressClick: false });
+  const dragRef = useRef({ active: false, lastId: null, suppressClick: false, moved: false });
 
   const tileFromPoint = (x, y) => {
     const el = document.elementFromPoint(x, y);
@@ -32,7 +32,7 @@ export default function Board({ board, selection, onSelect, rotation = 0 }) {
     const tile = tileFromPoint(e.clientX, e.clientY);
     if (!tile) return;
     e.preventDefault();
-    dragRef.current = { active: true, lastId: tile.id, suppressClick: true };
+    dragRef.current = { active: true, lastId: tile.id, suppressClick: true, moved: false };
     onSelect(tile);
     try { containerRef.current?.setPointerCapture(e.pointerId); } catch { /* ignore */ }
   };
@@ -43,13 +43,16 @@ export default function Board({ board, selection, onSelect, rotation = 0 }) {
     if (!tile || tile.id === dragRef.current.lastId) return;
     dragRef.current.lastId = tile.id;
     dragRef.current.suppressClick = true;
+    dragRef.current.moved = true;
     onSelect(tile);
   };
 
   const endDrag = (e) => {
     if (!dragRef.current.active) return;
+    const moved = dragRef.current.moved;
     dragRef.current.active = false;
     try { containerRef.current?.releasePointerCapture(e.pointerId); } catch { /* ignore */ }
+    if (moved) onSwipeEnd?.();
   };
 
   const handleClickCapture = (e) => {

@@ -195,7 +195,13 @@ export default function App() {
               )}
             </div>
 
-            <Board board={board} selection={selection} onSelect={selectTile} rotation={boardRotation} />
+            <Board
+              board={board}
+              selection={selection}
+              onSelect={selectTile}
+              onSwipeEnd={user?.submitAfterSwipe ? submitWord : undefined}
+              rotation={boardRotation}
+            />
 
             <div className="controls">
               <button

@@ -23,6 +23,18 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
     }
   };
 
+  const toggleSubmitAfterSwipe = async () => {
+    if (prefBusy) return;
+    setPrefBusy(true);
+    try {
+      await updatePreferences({ submitAfterSwipe: !user.submitAfterSwipe });
+    } catch {
+      // surface via UI in a future pass; ignore silently for now
+    } finally {
+      setPrefBusy(false);
+    }
+  };
+
   useEffect(() => {
     if (!menuOpen) return;
     const onDoc = (e) => {
@@ -120,6 +132,19 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
                         checked={!!user.clearAfterInvalid}
                         disabled={prefBusy}
                         onChange={toggleClearAfterInvalid}
+                      />
+                      <span className="switch__thumb" />
+                    </span>
+                  </label>
+                  <label className="header__menu-item header__menu-toggle">
+                    <span>Submit word after swipe</span>
+                    <span className={`switch ${user.submitAfterSwipe ? 'switch--on' : ''} ${prefBusy ? 'switch--busy' : ''}`}>
+                      <input
+                        type="checkbox"
+                        className="switch__input"
+                        checked={!!user.submitAfterSwipe}
+                        disabled={prefBusy}
+                        onChange={toggleSubmitAfterSwipe}
                       />
                       <span className="switch__thumb" />
                     </span>
