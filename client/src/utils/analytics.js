@@ -39,11 +39,14 @@ export function setUserType(isRegistered) {
   });
 }
 
-// Fires GA4's recommended `share` event so shares can be counted.
-export function trackShare(method = 'copy') {
+// Fires a distinct event for each share type so they can be counted
+// separately in GA reports.
+export function trackShareScore() {
   if (!window.gtag) return;
-  window.gtag('event', 'share', {
-    method,
-    content_type: 'score',
-  });
+  window.gtag('event', 'share_score', { method: 'copy' });
+}
+
+export function trackShareWords() {
+  if (!window.gtag) return;
+  window.gtag('event', 'share_words', { method: 'copy' });
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Modal from './Modal';
 import { buildShareText, buildWordsText, copyToClipboard } from '../utils/share';
-import { trackShare } from '../utils/analytics';
+import { trackShareScore, trackShareWords } from '../utils/analytics';
 
 export default function SummaryModal({
   open,
@@ -18,7 +18,7 @@ export default function SummaryModal({
   const handleShare = async () => {
     const text = buildShareText({ board, foundWords, totals, dateStr, theme });
     const ok = await copyToClipboard(text);
-    if (ok) trackShare('copy');
+    if (ok) trackShareScore();
     setShareStatus(ok ? 'Copied!' : 'Copy failed');
     setTimeout(() => setShareStatus(''), 1800);
   };
@@ -26,6 +26,7 @@ export default function SummaryModal({
   const handleCopyWords = async () => {
     const text = buildWordsText({ foundWords, totals, dateStr });
     const ok = await copyToClipboard(text);
+    if (ok) trackShareWords();
     setWordsStatus(ok ? 'Copied!' : 'Copy failed');
     setTimeout(() => setWordsStatus(''), 1800);
   };
