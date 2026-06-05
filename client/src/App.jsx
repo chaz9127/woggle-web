@@ -18,6 +18,7 @@ import { useGameStats } from './hooks/useGameStats';
 import { useTheme } from './hooks/useTheme';
 import { tilesToWord } from './utils/scoring';
 import { todayDateString } from './utils/random';
+import { setUserType } from './utils/analytics';
 import {
   getPlayedCookie, setPlayedCookie,
   getOverrideCookie, setOverrideCookie, clearOverrideCookie,
@@ -77,6 +78,11 @@ export default function App() {
       setWhySignUpOpen(true);
     }
   }, [authLoading, user, locked, whySignUpDismissed]);
+  useEffect(() => {
+    if (authLoading) return;
+    setUserType(!!user);
+  }, [authLoading, user]);
+
   const currentWord = tilesToWord(selection);
   const showTimer = phase === 'playing' || phase === 'done';
 
