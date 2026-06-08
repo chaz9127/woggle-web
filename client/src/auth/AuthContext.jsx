@@ -68,6 +68,15 @@ export function AuthProvider({ children }) {
     return user;
   }, []);
 
+  const changePassword = useCallback(async (currentPassword, newPassword) => {
+    const { user } = await apiFetch('/api/auth/password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    setUser(user);
+    return user;
+  }, []);
+
   const updatePreferences = useCallback(async (prefs) => {
     const { user } = await apiFetch('/api/auth/preferences', {
       method: 'PATCH',
@@ -78,7 +87,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, setUsername, updatePreferences, refresh }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, setUsername, changePassword, updatePreferences, refresh }}>
       {children}
     </AuthContext.Provider>
   );

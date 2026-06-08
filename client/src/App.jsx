@@ -9,6 +9,7 @@ import SummaryModal from './components/SummaryModal';
 import StartScreen from './components/StartScreen';
 import WhySignUpModal from './components/WhySignUpModal';
 import AuthModal from './auth/AuthModal';
+import AccountModal from './auth/AccountModal';
 import ChooseUsername from './auth/ChooseUsername';
 import AdminPage from './admin/AdminPage';
 import NotFound from './components/NotFound';
@@ -64,6 +65,7 @@ export default function App() {
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState('signin');
   const [statsOpen, setStatsOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [whySignUpOpen, setWhySignUpOpen] = useState(false);
   const [whySignUpDismissed, setWhySignUpDismissed] = useState(false);
   const [boardRotation, setBoardRotation] = useState(0);
@@ -142,6 +144,7 @@ export default function App() {
         onToggleTheme={toggleTheme}
         onOpenRules={() => setRulesOpen(true)}
         onOpenAuth={() => { setAuthMode('signin'); setAuthOpen(true); }}
+        onOpenAccount={() => setAccountOpen(true)}
         onOpenStats={() => setStatsOpen(true)}
         onOpenLeaderboard={() => { window.location.href = '/leaderboards'; }}
         remaining={remaining}
@@ -259,6 +262,7 @@ export default function App() {
       />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} initialMode={authMode} />
       <StatsModal open={statsOpen} onClose={() => setStatsOpen(false)} />
+      {accountOpen && <AccountModal onClose={() => setAccountOpen(false)} />}
       <SummaryModal
         open={phase === 'done'}
         onClose={dismissSummary}

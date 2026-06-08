@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { Menu } from 'lucide-react';
+import { Menu, Pencil } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import FeatureTooltip from './FeatureTooltip';
 import { featureTooltips } from '../config/featureTooltips';
 
-export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, onOpenStats, onOpenLeaderboard, remaining, showTimer }) {
+export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, onOpenAccount, onOpenStats, onOpenLeaderboard, remaining, showTimer }) {
   const mm = String(Math.floor((remaining ?? 0) / 60)).padStart(1, "0");
   const ss = String((remaining ?? 0) % 60).padStart(2, "0");
   const low = showTimer && remaining <= 10;
@@ -95,7 +95,7 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
           </button>
           {!menuOpen && (
             <FeatureTooltip
-              config={featureTooltips.submitAfterSwipe}
+              config={featureTooltips.editAccount}
               context={{ user }}
             />
           )}
@@ -103,8 +103,19 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
             <div className="header__menu" role="menu">
               {user && (
                 <div className="header__menu-user">
-                  <strong>{user.username || '(no username)'}</strong>
-                  <span>{user.email}</span>
+                  <div className="header__menu-user-text">
+                    <strong>{user.username || '(no username)'}</strong>
+                    <span>{user.email}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="icon-btn header__menu-edit"
+                    onClick={() => { setMenuOpen(false); onOpenAccount?.(); }}
+                    aria-label="Edit account"
+                    title="Edit account"
+                  >
+                    <Pencil size={15} aria-hidden="true" />
+                  </button>
                 </div>
               )}
               <button

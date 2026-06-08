@@ -56,6 +56,9 @@ const insertGoogleUser = db.prepare(
 const updateUsername = db.prepare(
   "UPDATE users SET username = ? WHERE id = ?"
 );
+const updatePasswordHash = db.prepare(
+  "UPDATE users SET password_hash = ? WHERE id = ?"
+);
 const linkGoogleId = db.prepare(
   "UPDATE users SET google_id = ? WHERE id = ?"
 );
@@ -228,11 +231,39 @@ function buildAuthRouter() {
         error: "Username must be 3-24 chars, letters/numbers/underscore",
       });
     }
-    if (findByUsername.get(username)) {
+    const existing = findByUsername.get(username);
+    if (existing && existing.id !== req.user.id) {
       return res.status(409).json({ error: "Username taken" });
     }
     updateUsername.run(username, req.user.id);
     res.json({ user: publicUser(findById.get(req.user.id)) });
+  });
+
+  router.post("/password", requireAuth, authLimiter, async (req, res, next) => {
+    try {
+      const currentPassword = String(req.body?.currentPassword || "");
+      const newPassword = String(req.body?.newPassword || "");
+
+      if (newPassword.length < 8) {
+        return res.status(400).json({ error: "Password must be 8+ chars" });
+      }
+
+      const user = findById.get(req.user.id);
+      // Users who set up via Google only have no password yet; let them set one
+      // without proving a current password they never had.
+      if (user.password_hash) {
+        const ok = await bcrypt.compare(currentPassword, user.password_hash);
+        if (!ok) {
+          return res.status(403).json({ error: "Current password is incorrect" });
+        }
+      }
+
+      const hash = await bcrypt.hash(newPassword, 12);
+      updatePasswordHash.run(hash, req.user.id);
+      res.json({ user: publicUser(findById.get(req.user.id)) });
+    } catch (e) {
+      next(e);
+    }
   });
 
   router.patch("/preferences", requireAuth, (req, res) => {

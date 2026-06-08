@@ -9,11 +9,11 @@
 //              `dismissed` is true once the user has closed it via the X.
 //              (The tooltip also only shows when its `targetId` element exists.)
 export const featureTooltips = {
-  submitAfterSwipe: {
-    name: "submitAfterSwipe",
+  editAccount: {
+    name: "editAccount",
     targetId: "header-menu-button",
-    title: "New Setting!",
-    body: "Now you have the ability to submit the word after swiping to save more time.",
+    title: "New Feature!",
+    body: "You can now change your username or password from the menu.",
     show: ({ user, dismissed }) => !!user && !dismissed,
   },
   leaderboardSignUp: {
