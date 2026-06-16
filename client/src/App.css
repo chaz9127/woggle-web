@@ -169,7 +169,7 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(4, 1fr);
-  gap: 8px;
+  gap: 16px;
 }
 .board__overlay {
   position: absolute;
@@ -235,7 +235,7 @@
 }
 .btn {
   border-radius: 8px;
-  padding: 12px 8px 7px;
+  padding: 8px;
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.5px;

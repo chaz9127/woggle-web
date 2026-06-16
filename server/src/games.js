@@ -1,6 +1,7 @@
 const express = require("express");
 const { db } = require("./db");
 const { requireAuth } = require("./auth");
+const { generateBoard, isFormable } = require("./board");
 
 const LETTER_VALUE = {
   A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1, J: 8,
@@ -240,6 +241,7 @@ function buildGamesRouter() {
       return res.status(400).json({ error: "words must be an array" });
     }
 
+    const board = generateBoard(gameDate);
     const seen = new Set();
     const accepted = [];
     let score = 0;
@@ -268,6 +270,7 @@ function buildGamesRouter() {
       if (!/^[a-z]{3,16}$/.test(w)) continue;
       if (seen.has(w)) continue;
       if (!wordExists.get(w)) continue;
+      if (!isFormable(board, w)) continue;
       seen.add(w);
       const ws = scoreWord(w);
       accepted.push({ word: w, scrabble: ws, tileIds, letterCount: letterCount ?? w.length });

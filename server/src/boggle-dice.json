@@ -1,0 +1,180 @@
+{
+  "dice": [
+    {
+      "die": 1,
+      "faces": [
+        {"letter": "A", "value": 1},
+        {"letter": "A", "value": 1},
+        {"letter": "A", "value": 1},
+        {"letter": "F", "value": 4},
+        {"letter": "R", "value": 1},
+        {"letter": "S", "value": 1}
+      ]
+    },
+    {
+      "die": 2,
+      "faces": [
+        {"letter": "A", "value": 1},
+        {"letter": "A", "value": 1},
+        {"letter": "E", "value": 1},
+        {"letter": "E", "value": 1},
+        {"letter": "E", "value": 1},
+        {"letter": "E", "value": 1}
+      ]
+    },
+    {
+      "die": 3,
+      "faces": [
+        {"letter": "A", "value": 1},
+        {"letter": "A", "value": 1},
+        {"letter": "F", "value": 4},
+        {"letter": "I", "value": 1},
+        {"letter": "R", "value": 1},
+        {"letter": "S", "value": 1}
+      ]
+    },
+    {
+      "die": 4,
+      "faces": [
+        {"letter": "A", "value": 1},
+        {"letter": "D", "value": 2},
+        {"letter": "E", "value": 1},
+        {"letter": "N", "value": 1},
+        {"letter": "N", "value": 1},
+        {"letter": "N", "value": 1}
+      ]
+    },
+    {
+      "die": 5,
+      "faces": [
+        {"letter": "A", "value": 1},
+        {"letter": "E", "value": 1},
+        {"letter": "E", "value": 1},
+        {"letter": "E", "value": 1},
+        {"letter": "E", "value": 1},
+        {"letter": "M", "value": 3}
+      ]
+    },
+    {
+      "die": 6,
+      "faces": [
+        {"letter": "A", "value": 1},
+        {"letter": "E", "value": 1},
+        {"letter": "E", "value": 1},
+        {"letter": "G", "value": 2},
+        {"letter": "M", "value": 3},
+        {"letter": "U", "value": 1}
+      ]
+    },
+    {
+      "die": 7,
+      "faces": [
+        {"letter": "A", "value": 1},
+        {"letter": "E", "value": 1},
+        {"letter": "G", "value": 2},
+        {"letter": "I", "value": 1},
+        {"letter": "N", "value": 1},
+        {"letter": "V", "value": 4}
+      ]
+    },
+    {
+      "die": 8,
+      "faces": [
+        {"letter": "A", "value": 1},
+        {"letter": "G", "value": 2},
+        {"letter": "I", "value": 1},
+        {"letter": "N", "value": 1},
+        {"letter": "R", "value": 1},
+        {"letter": "S", "value": 1}
+      ]
+    },
+    {
+      "die": 9,
+      "faces": [
+        {"letter": "D", "value": 2},
+        {"letter": "E", "value": 1},
+        {"letter": "L", "value": 1},
+        {"letter": "R", "value": 1},
+        {"letter": "V", "value": 4},
+        {"letter": "Y", "value": 4}
+      ]
+    },
+    {
+      "die": 10,
+      "faces": [
+        {"letter": "E", "value": 1},
+        {"letter": "L", "value": 1},
+        {"letter": "R", "value": 1},
+        {"letter": "T", "value": 1},
+        {"letter": "T", "value": 1},
+        {"letter": "Y", "value": 4}
+      ]
+    },
+    {
+      "die": 11,
+      "faces": [
+        {"letter": "H", "value": 4},
+        {"letter": "I", "value": 1},
+        {"letter": "M", "value": 3},
+        {"letter": "N", "value": 1},
+        {"letter": "Qu", "value": 10},
+        {"letter": "U", "value": 1}
+      ]
+    },
+    {
+      "die": 12,
+      "faces": [
+        {"letter": "H", "value": 4},
+        {"letter": "L", "value": 1},
+        {"letter": "N", "value": 1},
+        {"letter": "N", "value": 1},
+        {"letter": "R", "value": 1},
+        {"letter": "Z", "value": 10}
+      ]
+    },
+    {
+      "die": 13,
+      "faces": [
+        {"letter": "I", "value": 1},
+        {"letter": "P", "value": 3},
+        {"letter": "S", "value": 1},
+        {"letter": "S", "value": 1},
+        {"letter": "Y", "value": 4},
+        {"letter": "T", "value": 1}
+      ]
+    },
+    {
+      "die": 14,
+      "faces": [
+        {"letter": "J", "value": 8},
+        {"letter": "K", "value": 5},
+        {"letter": "Qu", "value": 10},
+        {"letter": "W", "value": 4},
+        {"letter": "X", "value": 8},
+        {"letter": "Z", "value": 10}
+      ]
+    },
+    {
+      "die": 15,
+      "faces": [
+        {"letter": "N", "value": 1},
+        {"letter": "O", "value": 1},
+        {"letter": "O", "value": 1},
+        {"letter": "T", "value": 1},
+        {"letter": "U", "value": 1},
+        {"letter": "W", "value": 4}
+      ]
+    },
+    {
+      "die": 16,
+      "faces": [
+        {"letter": "O", "value": 1},
+        {"letter": "O", "value": 1},
+        {"letter": "T", "value": 1},
+        {"letter": "T", "value": 1},
+        {"letter": "U", "value": 1},
+        {"letter": "U", "value": 1}
+      ]
+    }
+  ]
+}

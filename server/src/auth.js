@@ -310,16 +310,28 @@ function buildAuthRouter() {
   return router;
 }
 
+const INSECURE_SESSION_SECRET = "dev-insecure-change-me";
+
 function buildSessionMiddleware() {
   const sessionDb = new Database(path.join(dataDir, "sessions.db"));
   sessionDb.pragma("journal_mode = WAL");
   const isProd = process.env.NODE_ENV === "production";
+
+  // In production a forgeable session secret means anyone can mint a session for
+  // any user (including admins), so refuse to start with the dev fallback.
+  if (isProd && (!process.env.SESSION_SECRET ||
+      process.env.SESSION_SECRET === INSECURE_SESSION_SECRET)) {
+    throw new Error(
+      "SESSION_SECRET must be set to a strong random value in production"
+    );
+  }
+
   return session({
     store: new SqliteStore({
       client: sessionDb,
       expired: { clear: true, intervalMs: 15 * 60 * 1000 },
     }),
-    secret: process.env.SESSION_SECRET || "dev-insecure-change-me",
+    secret: process.env.SESSION_SECRET || INSECURE_SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
