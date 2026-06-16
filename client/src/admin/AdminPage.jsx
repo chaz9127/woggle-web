@@ -3,6 +3,7 @@ import AdminHome from './AdminHome';
 import AdminUsers from './AdminUsers';
 import AdminWordSuggestions from './AdminWordSuggestions';
 import AdminVisualizations from './AdminVisualizations';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function AdminPage() {
   const [active, setActive] = useState('home');
@@ -34,6 +35,8 @@ export default function AdminPage() {
     { key: 'visualizations', label: 'Visualizations', render: () => <AdminVisualizations /> },
   ];
   const current = NAV.find((n) => n.key === active) || NAV[0];
+
+  usePageTitle(current.key === 'home' ? 'Admin' : `Admin · ${current.label}`);
 
   return (
     <div className={`admin ${navCollapsed ? 'admin--nav-collapsed' : ''}`}>

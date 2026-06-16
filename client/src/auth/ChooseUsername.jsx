@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useAuth } from './AuthContext';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function ChooseUsername() {
   const { user, setUsername, logout } = useAuth();
+  usePageTitle('Choose Username');
   const [value, setValue] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);

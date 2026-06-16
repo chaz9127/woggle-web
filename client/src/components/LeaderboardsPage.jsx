@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { todayDateString } from '../utils/random';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 async function apiFetch(path) {
   const res = await fetch(path, { credentials: 'include' });
@@ -11,6 +12,8 @@ export default function LeaderboardsPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('today');
+
+  usePageTitle('Leaderboard');
 
   useEffect(() => {
     let cancelled = false;
