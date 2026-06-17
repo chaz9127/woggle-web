@@ -50,6 +50,28 @@ export default function LeaderboardsPage() {
         You must create an account to be included on the leaderboards.
       </p>
 
+      <div className="leaderboards__tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'today'}
+          className={`leaderboards__tab ${tab === 'today' ? 'leaderboards__tab--active' : ''}`}
+          onClick={() => setTab('today')}
+        >
+          {viewingToday ? 'Today' : 'Daily'}{' '}
+          {data?.todayDate ? `(${data.todayDate})` : ''}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'all-time'}
+          className={`leaderboards__tab ${tab === 'all-time' ? 'leaderboards__tab--active' : ''}`}
+          onClick={() => setTab('all-time')}
+        >
+          All-Time
+        </button>
+      </div>
+
       {isAdmin && tab === 'today' && (
         <div className="leaderboards__admin-date">
           <input
@@ -80,28 +102,6 @@ export default function LeaderboardsPage() {
                 ? 'No games today yet.'
                 : 'No games on this date.'
               : 'No games yet.'}
-
-            <div className="leaderboards__tabs" role="tablist">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={tab === 'today'}
-                className={`leaderboards__tab ${tab === 'today' ? 'leaderboards__tab--active' : ''}`}
-                onClick={() => setTab('today')}
-              >
-                {viewingToday ? 'Today' : 'Daily'}{' '}
-                {data?.todayDate ? `(${data.todayDate})` : ''}
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={tab === 'all-time'}
-                className={`leaderboards__tab ${tab === 'all-time' ? 'leaderboards__tab--active' : ''}`}
-                onClick={() => setTab('all-time')}
-              >
-                All-Time
-              </button>
-            </div>
           </p>
         ) : (
           <ol className="leaderboard__list">
