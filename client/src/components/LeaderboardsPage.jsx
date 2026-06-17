@@ -1,12 +1,41 @@
 import { useEffect, useState } from 'react';
+import { List } from 'lucide-react';
 import { todayDateString } from '../utils/random';
 import { usePageTitle } from '../hooks/usePageTitle';
 import { useAuth } from '../auth/AuthContext';
+import Modal from './Modal';
 
 async function apiFetch(path) {
   const res = await fetch(path, { credentials: 'include' });
   if (!res.ok) throw new Error('Failed');
   return res.json();
+}
+
+function WordsView({ words }) {
+  const sorted = [...words].sort(
+    (a, b) => b.scrabble - a.scrabble || a.word.localeCompare(b.word)
+  );
+  if (sorted.length === 0) {
+    return <p className="stats__empty">No words found in this game.</p>;
+  }
+  return (
+    <div className="wordlist">
+      <h2 className="wordlist__title">Words ({sorted.length})</h2>
+      <ul className="wordlist__list">
+        {sorted.map((w) => (
+          <li key={w.word} className="wordlist__item">
+            <span className="wordlist__word">{w.word}</span>
+            <span className="wordlist__meta">
+              <span title="Letters">{w.letterCount}L</span>
+              <span title="Score" className="wordlist__scrabble">
+                {w.scrabble}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 export default function LeaderboardsPage() {
@@ -18,12 +47,17 @@ export default function LeaderboardsPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('today');
   const [date, setDate] = useState(today);
+  const [wordsModal, setWordsModal] = useState(null);
 
   usePageTitle('Leaderboard');
 
+  // Re-fetch when the signed-in user changes (sign in/out) as well as on date
+  // change: word visibility depends on who is viewing, so stale rows from a
+  // previous auth state must not linger. Also close any open words modal.
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setWordsModal(null);
     apiFetch(`/api/games/leaderboard?date=${date}`)
       .then((d) => {
         if (!cancelled) setData(d);
@@ -37,7 +71,7 @@ export default function LeaderboardsPage() {
     return () => {
       cancelled = true;
     };
-  }, [date]);
+  }, [date, user?.id]);
 
   const viewingToday = date === today;
 
@@ -105,19 +139,60 @@ export default function LeaderboardsPage() {
           </p>
         ) : (
           <ol className="leaderboard__list">
-            {rows.map((row, i) => (
-              <li key={i} className="leaderboard__row">
-                <span className="leaderboard__rank">{i + 1}</span>
-                <span className="leaderboard__name">{row.username}</span>
-                {tab === 'all-time' && (
-                  <span className="leaderboard__date">{row.gameDate}</span>
-                )}
-                <span className="leaderboard__score">{row.score}</span>
-              </li>
-            ))}
+            {rows.map((row, i) => {
+              const rowDate =
+                tab === 'all-time' ? row.gameDate : data.todayDate;
+              const gated = row.words == null;
+              const reason = !user
+                ? 'Sign in and finish today’s game to view words'
+                : 'Finish today’s game to view words';
+              return (
+                <li key={i} className="leaderboard__row">
+                  <span className="leaderboard__rank">{i + 1}</span>
+                  <span className="leaderboard__name">{row.username}</span>
+                  {tab === 'all-time' && (
+                    <span className="leaderboard__date">{row.gameDate}</span>
+                  )}
+                  <span className="leaderboard__score">{row.score}</span>
+                  <span className="leaderboard__words-tip-wrap">
+                    <button
+                      type="button"
+                      className={`leaderboard__words-btn ${gated ? 'leaderboard__words-btn--disabled' : ''}`}
+                      aria-disabled={gated}
+                      aria-label={
+                        gated ? reason : `View ${row.username}’s words`
+                      }
+                      onClick={
+                        gated
+                          ? undefined
+                          : () =>
+                              setWordsModal({
+                                username: row.username,
+                                date: rowDate,
+                                words: row.words,
+                              })
+                      }
+                    >
+                      <List size={16} aria-hidden="true" />
+                    </button>
+                    <span className="leaderboard__words-tip" role="tooltip">
+                      {gated ? reason : `View ${row.username}’s words`}
+                    </span>
+                  </span>
+                </li>
+              );
+            })}
           </ol>
         )}
       </section>
+
+      <Modal
+        open={!!wordsModal}
+        title={wordsModal ? `${wordsModal.username} — ${wordsModal.date}` : ''}
+        onClose={() => setWordsModal(null)}
+      >
+        {wordsModal && <WordsView words={wordsModal.words} />}
+      </Modal>
     </div>
   );
 }

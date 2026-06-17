@@ -49,6 +49,36 @@ function scoreWord(word) {
   return sum;
 }
 
+// Parse a stored found_words JSON blob into a lean { word, scrabble, letterCount }
+// list for display. Tolerates legacy payloads where entries are bare strings.
+function parseFoundWords(foundWordsJson) {
+  if (!foundWordsJson) return [];
+  let parsed;
+  try {
+    parsed = JSON.parse(foundWordsJson);
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(parsed)) return [];
+  return parsed
+    .map((entry) => {
+      if (typeof entry === "string") {
+        return {
+          word: entry,
+          scrabble: scoreWord(entry),
+          letterCount: entry.length,
+        };
+      }
+      if (!entry || typeof entry.word !== "string") return null;
+      return {
+        word: entry.word,
+        scrabble: Number(entry.scrabble) || scoreWord(entry.word),
+        letterCount: Number(entry.letterCount) || entry.word.length,
+      };
+    })
+    .filter(Boolean);
+}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS user_games (
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -181,7 +211,7 @@ const updateUserStats = db.prepare(`
   WHERE id = ?
 `);
 const leaderboardAllTime = db.prepare(`
-  SELECT u.username, g.score, g.game_date
+  SELECT u.username, g.score, g.game_date, g.found_words
   FROM user_games g
   JOIN users u ON u.id = g.user_id
   WHERE g.completed_at IS NOT NULL AND g.user_id IS NOT NULL
@@ -189,7 +219,7 @@ const leaderboardAllTime = db.prepare(`
   LIMIT 10
 `);
 const leaderboardToday = db.prepare(`
-  SELECT u.username, g.score
+  SELECT u.username, g.score, g.found_words
   FROM user_games g
   JOIN users u ON u.id = g.user_id
   WHERE g.completed_at IS NOT NULL AND g.user_id IS NOT NULL AND g.game_date = ?
@@ -453,17 +483,33 @@ function buildGamesRouter() {
       ? DATE_RE.test(requested)
       : isAcceptableLocalDate(requested);
     const today = allowed ? requested : utcToday();
+
+    // A player's words for a past game are visible to anyone. For the current
+    // live board they are withheld (words: null) until the viewer has completed
+    // their own game today, so the leaderboard can't be used to copy answers.
+    const liveDate = utcToday();
+    const viewerCompletedToday = req.user
+      ? !!findGame.get(req.user.id, liveDate)?.completed_at
+      : false;
+    const wordsFor = (gameDate, foundWordsJson) => {
+      if (gameDate === liveDate && !viewerCompletedToday) return null;
+      return parseFoundWords(foundWordsJson);
+    };
+
     res.json({
       allTime: leaderboardAllTime.all().map((g) => ({
         username: g.username,
         score: g.score,
         gameDate: g.game_date,
+        words: wordsFor(g.game_date, g.found_words),
       })),
       today: leaderboardToday.all(today).map((g) => ({
         username: g.username,
         score: g.score,
+        words: wordsFor(today, g.found_words),
       })),
       todayDate: today,
+      viewerCompletedToday,
     });
   });
 
