@@ -372,7 +372,13 @@ function buildGamesRouter() {
 
   router.get("/leaderboard", (req, res) => {
     const requested = String(req.query?.date || "");
-    const today = isAcceptableLocalDate(requested) ? requested : utcToday();
+    // Admins may view any historical date; everyone else is limited to the
+    // current local-date window (today/yesterday/tomorrow) to keep play fair.
+    const isAdmin = req.user?.role === "admin";
+    const allowed = isAdmin
+      ? DATE_RE.test(requested)
+      : isAcceptableLocalDate(requested);
+    const today = allowed ? requested : utcToday();
     res.json({
       allTime: leaderboardAllTime.all().map((g) => ({
         username: g.username,

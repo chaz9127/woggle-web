@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { todayDateString } from '../utils/random';
 import { usePageTitle } from '../hooks/usePageTitle';
+import { useAuth } from '../auth/AuthContext';
 
 async function apiFetch(path) {
   const res = await fetch(path, { credentials: 'include' });
@@ -9,20 +10,28 @@ async function apiFetch(path) {
 }
 
 export default function LeaderboardsPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+  const today = todayDateString();
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('today');
+  const [date, setDate] = useState(today);
 
   usePageTitle('Leaderboard');
 
   useEffect(() => {
     let cancelled = false;
-    apiFetch(`/api/games/leaderboard?date=${todayDateString()}`)
+    setLoading(true);
+    apiFetch(`/api/games/leaderboard?date=${date}`)
       .then((d) => { if (!cancelled) setData(d); })
       .catch(() => { if (!cancelled) setData(null); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, []);
+  }, [date]);
+
+  const viewingToday = date === today;
 
   const rows = !data
     ? []
@@ -37,6 +46,38 @@ export default function LeaderboardsPage() {
         You must create an account to be included on the leaderboards.
       </p>
 
+      {isAdmin && tab === 'today' && (
+        <div className="leaderboards__admin-date">
+          <label>
+            View date
+            <input
+              type="date"
+              value={date}
+              max={today}
+              onChange={(e) => setDate(e.target.value || today)}
+            />
+          </label>
+          {!viewingToday && (
+            <button
+              type="button"
+              className="btn btn--ghost btn--inline"
+              onClick={() => setDate(today)}
+            >
+              Back to today
+            </button>
+          )}
+        </div>
+      )}
+
+      <section className="leaderboards__panel">
+        {loading ? (
+          <p className="stats__empty">Loading…</p>
+        ) : !data || rows.length === 0 ? (
+          <p className="stats__empty">
+            {tab === 'today'
+              ? (viewingToday ? 'No games today yet.' : 'No games on this date.')
+              : 'No games yet.'}
+
       <div className="leaderboards__tabs" role="tablist">
         <button
           type="button"
@@ -45,7 +86,7 @@ export default function LeaderboardsPage() {
           className={`leaderboards__tab ${tab === 'today' ? 'leaderboards__tab--active' : ''}`}
           onClick={() => setTab('today')}
         >
-          Today {data?.todayDate ? `(${data.todayDate})` : ''}
+          {viewingToday ? 'Today' : 'Daily'} {data?.todayDate ? `(${data.todayDate})` : ''}
         </button>
         <button
           type="button"
@@ -57,13 +98,6 @@ export default function LeaderboardsPage() {
           All-Time
         </button>
       </div>
-
-      <section className="leaderboards__panel">
-        {loading ? (
-          <p className="stats__empty">Loading…</p>
-        ) : !data || rows.length === 0 ? (
-          <p className="stats__empty">
-            {tab === 'today' ? 'No games today yet.' : 'No games yet.'}
           </p>
         ) : (
           <ol className="leaderboard__list">
