@@ -1,4 +1,4 @@
-const RESULT_KEY_PREFIX = "woggle-result-";
+const RESULT_KEY_PREFIX = 'woggle-result-';
 
 export function loadResult(dateStr) {
   try {

@@ -4,19 +4,34 @@ import Tile from './Tile';
 function rotatePosition(row, col, rotation, size = 4) {
   const max = size - 1;
   switch (((rotation % 4) + 4) % 4) {
-    case 1: return { row: col, col: max - row };
-    case 2: return { row: max - row, col: max - col };
-    case 3: return { row: max - col, col: row };
-    default: return { row, col };
+    case 1:
+      return { row: col, col: max - row };
+    case 2:
+      return { row: max - row, col: max - col };
+    case 3:
+      return { row: max - col, col: row };
+    default:
+      return { row, col };
   }
 }
 
-export default function Board({ board, selection, onSelect, onSwipeEnd, rotation = 0 }) {
+export default function Board({
+  board,
+  selection,
+  onSelect,
+  onSwipeEnd,
+  rotation = 0,
+}) {
   const containerRef = useRef(null);
   const tileRefs = useRef({});
   const [points, setPoints] = useState([]);
   const [size, setSize] = useState({ w: 0, h: 0 });
-  const dragRef = useRef({ active: false, lastId: null, suppressClick: false, moved: false });
+  const dragRef = useRef({
+    active: false,
+    lastId: null,
+    suppressClick: false,
+    moved: false,
+  });
 
   const tileFromPoint = (x, y) => {
     const el = document.elementFromPoint(x, y);
@@ -32,9 +47,18 @@ export default function Board({ board, selection, onSelect, onSwipeEnd, rotation
     const tile = tileFromPoint(e.clientX, e.clientY);
     if (!tile) return;
     e.preventDefault();
-    dragRef.current = { active: true, lastId: tile.id, suppressClick: true, moved: false };
+    dragRef.current = {
+      active: true,
+      lastId: tile.id,
+      suppressClick: true,
+      moved: false,
+    };
     onSelect(tile);
-    try { containerRef.current?.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+    try {
+      containerRef.current?.setPointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
   };
 
   const handlePointerMove = (e) => {
@@ -51,7 +75,11 @@ export default function Board({ board, selection, onSelect, onSwipeEnd, rotation
     if (!dragRef.current.active) return;
     const moved = dragRef.current.moved;
     dragRef.current.active = false;
-    try { containerRef.current?.releasePointerCapture(e.pointerId); } catch { /* ignore */ }
+    try {
+      containerRef.current?.releasePointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
     if (moved) onSwipeEnd?.();
   };
 
@@ -68,15 +96,17 @@ export default function Board({ board, selection, onSelect, onSwipeEnd, rotation
     if (!container) return;
     const cRect = container.getBoundingClientRect();
     setSize({ w: cRect.width, h: cRect.height });
-    const pts = selection.map((tile) => {
-      const el = tileRefs.current[tile.id];
-      if (!el) return null;
-      const r = el.getBoundingClientRect();
-      return {
-        x: r.left - cRect.left + r.width / 2,
-        y: r.top - cRect.top + r.height / 2,
-      };
-    }).filter(Boolean);
+    const pts = selection
+      .map((tile) => {
+        const el = tileRefs.current[tile.id];
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return {
+          x: r.left - cRect.left + r.width / 2,
+          y: r.top - cRect.top + r.height / 2,
+        };
+      })
+      .filter(Boolean);
     setPoints(pts);
   };
 

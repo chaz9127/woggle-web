@@ -4,9 +4,32 @@ const { requireAuth } = require("./auth");
 const { generateBoard, isFormable } = require("./board");
 
 const LETTER_VALUE = {
-  A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1, J: 8,
-  K: 5, L: 1, M: 3, N: 1, O: 1, P: 3, Q: 10, R: 1, S: 1, T: 1,
-  U: 1, V: 4, W: 4, X: 8, Y: 4, Z: 10,
+  A: 1,
+  B: 3,
+  C: 3,
+  D: 2,
+  E: 1,
+  F: 4,
+  G: 2,
+  H: 4,
+  I: 1,
+  J: 8,
+  K: 5,
+  L: 1,
+  M: 3,
+  N: 1,
+  O: 1,
+  P: 3,
+  Q: 10,
+  R: 1,
+  S: 1,
+  T: 1,
+  U: 1,
+  V: 4,
+  W: 4,
+  X: 8,
+  Y: 4,
+  Z: 10,
 };
 
 function scoreWord(word) {
@@ -52,26 +75,40 @@ db.exec(`
     END;
 `);
 
-const userCols = db.prepare("PRAGMA table_info(users)").all().map((c) => c.name);
+const userCols = db
+  .prepare("PRAGMA table_info(users)")
+  .all()
+  .map((c) => c.name);
 if (!userCols.includes("total_games")) {
-  db.exec("ALTER TABLE users ADD COLUMN total_games INTEGER NOT NULL DEFAULT 0");
+  db.exec(
+    "ALTER TABLE users ADD COLUMN total_games INTEGER NOT NULL DEFAULT 0"
+  );
 }
 if (!userCols.includes("current_streak")) {
-  db.exec("ALTER TABLE users ADD COLUMN current_streak INTEGER NOT NULL DEFAULT 0");
+  db.exec(
+    "ALTER TABLE users ADD COLUMN current_streak INTEGER NOT NULL DEFAULT 0"
+  );
 }
 if (!userCols.includes("longest_streak")) {
-  db.exec("ALTER TABLE users ADD COLUMN longest_streak INTEGER NOT NULL DEFAULT 0");
+  db.exec(
+    "ALTER TABLE users ADD COLUMN longest_streak INTEGER NOT NULL DEFAULT 0"
+  );
 }
 if (!userCols.includes("last_completed_date")) {
   db.exec("ALTER TABLE users ADD COLUMN last_completed_date TEXT");
 }
 
-const gameCols = db.prepare("PRAGMA table_info(user_games)").all().map((c) => c.name);
+const gameCols = db
+  .prepare("PRAGMA table_info(user_games)")
+  .all()
+  .map((c) => c.name);
 if (!gameCols.includes("highest_word")) {
   db.exec("ALTER TABLE user_games ADD COLUMN highest_word TEXT");
 }
 if (!gameCols.includes("highest_word_score")) {
-  db.exec("ALTER TABLE user_games ADD COLUMN highest_word_score INTEGER NOT NULL DEFAULT 0");
+  db.exec(
+    "ALTER TABLE user_games ADD COLUMN highest_word_score INTEGER NOT NULL DEFAULT 0"
+  );
 }
 
 const userIdCol = db
@@ -188,45 +225,56 @@ function tomorrowOf(dateStr) {
 function isAcceptableLocalDate(dateStr) {
   if (!DATE_RE.test(dateStr)) return false;
   const today = utcToday();
-  return dateStr === today
-    || dateStr === yesterdayOf(today)
-    || dateStr === tomorrowOf(today);
+  return (
+    dateStr === today ||
+    dateStr === yesterdayOf(today) ||
+    dateStr === tomorrowOf(today)
+  );
 }
 
 function effectiveStreak(user) {
   if (!user.last_completed_date) return 0;
   const today = utcToday();
   if (user.last_completed_date === today) return user.current_streak;
-  if (user.last_completed_date === yesterdayOf(today)) return user.current_streak;
+  if (user.last_completed_date === yesterdayOf(today))
+    return user.current_streak;
   return 0;
 }
 
-const completeGameTx = db.transaction((userId, gameDate, acceptedWords, score, highestWord, highestWordScore) => {
-  const stats = findUserStats.get(userId);
-  const existing = findGame.get(userId, gameDate);
-  if (existing && existing.completed_at) {
-    return {
-      total: stats.total_games || 0,
-      currentStreak: stats.current_streak || 0,
-      longestStreak: stats.longest_streak || 0,
-      alreadyPersisted: true,
-    };
+const completeGameTx = db.transaction(
+  (userId, gameDate, acceptedWords, score, highestWord, highestWordScore) => {
+    const stats = findUserStats.get(userId);
+    const existing = findGame.get(userId, gameDate);
+    if (existing && existing.completed_at) {
+      return {
+        total: stats.total_games || 0,
+        currentStreak: stats.current_streak || 0,
+        longestStreak: stats.longest_streak || 0,
+        alreadyPersisted: true,
+      };
+    }
+
+    insertGame.run(
+      userId,
+      gameDate,
+      score,
+      acceptedWords.length,
+      highestWord,
+      highestWordScore,
+      JSON.stringify(acceptedWords)
+    );
+
+    const total = (stats.total_games || 0) + 1;
+    const prevStreak =
+      stats.last_completed_date === yesterdayOf(gameDate)
+        ? stats.current_streak || 0
+        : 0;
+    const newStreak = prevStreak + 1;
+    const longest = Math.max(stats.longest_streak || 0, newStreak);
+    updateUserStats.run(total, newStreak, longest, gameDate, userId);
+    return { total, currentStreak: newStreak, longestStreak: longest };
   }
-
-  insertGame.run(
-    userId, gameDate, score, acceptedWords.length,
-    highestWord, highestWordScore, JSON.stringify(acceptedWords)
-  );
-
-  const total = (stats.total_games || 0) + 1;
-  const prevStreak = stats.last_completed_date === yesterdayOf(gameDate)
-    ? stats.current_streak || 0
-    : 0;
-  const newStreak = prevStreak + 1;
-  const longest = Math.max(stats.longest_streak || 0, newStreak);
-  updateUserStats.run(total, newStreak, longest, gameDate, userId);
-  return { total, currentStreak: newStreak, longestStreak: longest };
-});
+);
 
 function buildGamesRouter() {
   const router = express.Router();
@@ -253,14 +301,22 @@ function buildGamesRouter() {
       let letterCount = null;
       if (typeof raw === "string") {
         candidate = raw;
-      } else if (raw && typeof raw === "object" && typeof raw.word === "string") {
+      } else if (
+        raw &&
+        typeof raw === "object" &&
+        typeof raw.word === "string"
+      ) {
         candidate = raw.word;
         if (Array.isArray(raw.tileIds)) {
           tileIds = raw.tileIds
             .filter((id) => Number.isInteger(id) && id >= 0 && id < 16)
             .slice(0, 16);
         }
-        if (Number.isInteger(raw.letterCount) && raw.letterCount > 0 && raw.letterCount <= 32) {
+        if (
+          Number.isInteger(raw.letterCount) &&
+          raw.letterCount > 0 &&
+          raw.letterCount <= 32
+        ) {
           letterCount = raw.letterCount;
         }
       } else {
@@ -273,9 +329,17 @@ function buildGamesRouter() {
       if (!isFormable(board, w)) continue;
       seen.add(w);
       const ws = scoreWord(w);
-      accepted.push({ word: w, scrabble: ws, tileIds, letterCount: letterCount ?? w.length });
+      accepted.push({
+        word: w,
+        scrabble: ws,
+        tileIds,
+        letterCount: letterCount ?? w.length,
+      });
       score += ws;
-      if (ws > highestWordScore || (ws === highestWordScore && w.length > (highestWord?.length || 0))) {
+      if (
+        ws > highestWordScore ||
+        (ws === highestWordScore && w.length > (highestWord?.length || 0))
+      ) {
         highestWord = w;
         highestWordScore = ws;
       }
@@ -283,8 +347,13 @@ function buildGamesRouter() {
 
     if (!req.user) {
       insertGame.run(
-        null, gameDate, score, accepted.length,
-        highestWord, highestWordScore, JSON.stringify(accepted)
+        null,
+        gameDate,
+        score,
+        accepted.length,
+        highestWord,
+        highestWordScore,
+        JSON.stringify(accepted)
       );
       return res.json({
         game: { gameDate, score, wordCount: accepted.length },
@@ -293,7 +362,12 @@ function buildGamesRouter() {
     }
 
     const result = completeGameTx(
-      req.user.id, gameDate, accepted, score, highestWord, highestWordScore
+      req.user.id,
+      gameDate,
+      accepted,
+      score,
+      highestWord,
+      highestWordScore
     );
 
     res.json({

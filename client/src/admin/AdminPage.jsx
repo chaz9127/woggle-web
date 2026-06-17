@@ -16,11 +16,15 @@ export default function AdminPage() {
       .then((res) => (res.ok ? res.json() : { suggestions: [] }))
       .then((data) => {
         if (cancelled) return;
-        const count = (data.suggestions || []).filter((s) => s.status === 'pending').length;
+        const count = (data.suggestions || []).filter(
+          (s) => s.status === 'pending'
+        ).length;
         setPendingCount(count);
       })
       .catch(() => {});
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const NAV = [
@@ -30,9 +34,15 @@ export default function AdminPage() {
       key: 'word-suggestions',
       label: 'Word Suggestions',
       badge: pendingCount,
-      render: () => <AdminWordSuggestions onPendingCountChange={setPendingCount} />,
+      render: () => (
+        <AdminWordSuggestions onPendingCountChange={setPendingCount} />
+      ),
     },
-    { key: 'visualizations', label: 'Visualizations', render: () => <AdminVisualizations /> },
+    {
+      key: 'visualizations',
+      label: 'Visualizations',
+      render: () => <AdminVisualizations />,
+    },
   ];
   const current = NAV.find((n) => n.key === active) || NAV[0];
 
@@ -45,14 +55,18 @@ export default function AdminPage() {
           type="button"
           className="admin__nav-toggle"
           onClick={() => setNavCollapsed((c) => !c)}
-          aria-label={navCollapsed ? 'Expand navigation' : 'Collapse navigation'}
+          aria-label={
+            navCollapsed ? 'Expand navigation' : 'Collapse navigation'
+          }
           title={navCollapsed ? 'Expand navigation' : 'Collapse navigation'}
         >
           {navCollapsed ? '»' : '«'}
         </button>
         {!navCollapsed && (
           <>
-            <a href="/" className="admin__back">← Back to game</a>
+            <a href="/" className="admin__back">
+              ← Back to game
+            </a>
             <h2 className="admin__heading">Admin</h2>
           </>
         )}
@@ -65,16 +79,13 @@ export default function AdminPage() {
                 className={`admin__nav-item ${active === item.key ? 'admin__nav-item--active' : ''}`}
                 onClick={() => setActive(item.key)}
               >
-                {item.badge > 0 && ` (${item.badge})`}{' '}
-                {item.label}
+                {item.badge > 0 && ` (${item.badge})`} {item.label}
               </button>
             ))}
           </nav>
         )}
       </aside>
-      <main className="admin__main">
-        {current.render()}
-      </main>
+      <main className="admin__main">{current.render()}</main>
     </div>
   );
 }

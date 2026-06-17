@@ -11,7 +11,9 @@ const listUsers = db.prepare(`
   ORDER BY created_at DESC
 `);
 const updateRole = db.prepare("UPDATE users SET role = ? WHERE id = ?");
-const findUser = db.prepare("SELECT id, email, username, role FROM users WHERE id = ?");
+const findUser = db.prepare(
+  "SELECT id, email, username, role FROM users WHERE id = ?"
+);
 
 const listSuggestions = db.prepare(`
   SELECT s.word, s.status, s.created_at, s.updated_at,
@@ -97,7 +99,8 @@ function rangeStart(range, todayStr) {
 
 function requireAdmin(req, res, next) {
   if (!req.user) return res.status(404).json({ error: "Not found" });
-  if (req.user.role !== "admin") return res.status(404).json({ error: "Not found" });
+  if (req.user.role !== "admin")
+    return res.status(404).json({ error: "Not found" });
   next();
 }
 
@@ -108,7 +111,9 @@ function buildAdminRouter() {
 
   router.get("/stats", (req, res) => {
     const requested = String(req.query?.date || "");
-    const today = /^\d{4}-\d{2}-\d{2}$/.test(requested) ? requested : utcToday();
+    const today = /^\d{4}-\d{2}-\d{2}$/.test(requested)
+      ? requested
+      : utcToday();
     const lifetime = statsLifetimeHigh.get();
     const todayHigh = statsTodayHigh.get(today);
     const busiest = statsBusiestDay.get();
@@ -118,7 +123,11 @@ function buildAdminRouter() {
       totalWords: statsTotalWords.get().n,
       totalSignups: statsTotalSignups.get().n,
       lifetimeHigh: lifetime
-        ? { username: lifetime.username, score: lifetime.score, gameDate: lifetime.game_date }
+        ? {
+            username: lifetime.username,
+            score: lifetime.score,
+            gameDate: lifetime.game_date,
+          }
         : null,
       todayHigh: todayHigh
         ? { username: todayHigh.username, score: todayHigh.score }

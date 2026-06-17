@@ -17,15 +17,21 @@ export default function AdminHome() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`/api/admin/stats?date=${todayDateString()}`, { credentials: 'include' })
+    fetch(`/api/admin/stats?date=${todayDateString()}`, {
+      credentials: 'include',
+    })
       .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
       .then(({ ok, data }) => {
         if (cancelled) return;
         if (!ok) setError(data?.error || 'Failed to load stats');
         else setStats(data);
       })
-      .catch((err) => { if (!cancelled) setError(err.message); });
-    return () => { cancelled = true; };
+      .catch((err) => {
+        if (!cancelled) setError(err.message);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (error) return <p className="admin__error">{error}</p>;
@@ -44,7 +50,9 @@ export default function AdminHome() {
         />
         <StatCard
           label="Most games in a day"
-          value={stats.busiestDay ? stats.busiestDay.count.toLocaleString() : '—'}
+          value={
+            stats.busiestDay ? stats.busiestDay.count.toLocaleString() : '—'
+          }
           sub={stats.busiestDay ? stats.busiestDay.gameDate : 'No games yet'}
         />
         <StatCard
@@ -61,7 +69,9 @@ export default function AdminHome() {
         />
         <StatCard
           label="Lifetime high score"
-          value={stats.lifetimeHigh ? stats.lifetimeHigh.score.toLocaleString() : '—'}
+          value={
+            stats.lifetimeHigh ? stats.lifetimeHigh.score.toLocaleString() : '—'
+          }
           sub={
             stats.lifetimeHigh
               ? `${stats.lifetimeHigh.username} · ${stats.lifetimeHigh.gameDate}`

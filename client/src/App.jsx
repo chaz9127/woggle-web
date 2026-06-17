@@ -21,8 +21,11 @@ import { tilesToWord } from './utils/scoring';
 import { todayDateString } from './utils/random';
 import { setUserType } from './utils/analytics';
 import {
-  getPlayedCookie, setPlayedCookie,
-  getOverrideCookie, setOverrideCookie, clearOverrideCookie,
+  getPlayedCookie,
+  setPlayedCookie,
+  getOverrideCookie,
+  setOverrideCookie,
+  clearOverrideCookie,
 } from './utils/cookies';
 import './App.css';
 
@@ -127,7 +130,11 @@ export default function App() {
   if (!authLoading && user && !user.username) {
     return <ChooseUsername />;
   }
-  if (!authLoading && window.location.pathname === '/choose-username' && user?.username) {
+  if (
+    !authLoading &&
+    window.location.pathname === '/choose-username' &&
+    user?.username
+  ) {
     window.history.replaceState({}, '', '/');
   }
   if (window.location.pathname.startsWith('/admin')) {
@@ -143,10 +150,15 @@ export default function App() {
         theme={theme}
         onToggleTheme={toggleTheme}
         onOpenRules={() => setRulesOpen(true)}
-        onOpenAuth={() => { setAuthMode('signin'); setAuthOpen(true); }}
+        onOpenAuth={() => {
+          setAuthMode('signin');
+          setAuthOpen(true);
+        }}
         onOpenAccount={() => setAccountOpen(true)}
         onOpenStats={() => setStatsOpen(true)}
-        onOpenLeaderboard={() => { window.location.href = '/leaderboards'; }}
+        onOpenLeaderboard={() => {
+          window.location.href = '/leaderboards';
+        }}
         remaining={remaining}
         showTimer={!isLeaderboards && showTimer}
       />
@@ -163,7 +175,10 @@ export default function App() {
               setOverrideCookie(dateStr);
               setOverrideActive(true);
             }}
-            onSignUp={() => { setAuthMode('signup'); setAuthOpen(true); }}
+            onSignUp={() => {
+              setAuthMode('signup');
+              setAuthOpen(true);
+            }}
             totals={totals}
             foundWords={foundWords}
             board={board}
@@ -172,17 +187,23 @@ export default function App() {
           />
         ) : (
           <>
-            <div className={`scoreboard ${error ? 'scoreboard--error' : ''} ${successPoints != null ? 'scoreboard--success' : ''}`}>
+            <div
+              className={`scoreboard ${error ? 'scoreboard--error' : ''} ${successPoints != null ? 'scoreboard--success' : ''}`}
+            >
               {successPoints != null ? (
                 <div className="scoreboard__alert">
-                  <span>{successPoints} {successPoints === 1 ? 'point' : 'points'}!</span>
+                  <span>
+                    {successPoints} {successPoints === 1 ? 'point' : 'points'}!
+                  </span>
                 </div>
               ) : error ? (
                 <div className="scoreboard__alert">
                   <span>{error}</span>
-                  {invalidWord && (
-                    suggested ? (
-                      <span className="current-word__suggested">Suggested!</span>
+                  {invalidWord &&
+                    (suggested ? (
+                      <span className="current-word__suggested">
+                        Suggested!
+                      </span>
                     ) : (
                       <button
                         type="button"
@@ -191,15 +212,20 @@ export default function App() {
                       >
                         Suggest?
                       </button>
-                    )
-                  )}
+                    ))}
                 </div>
               ) : currentWord ? (
                 <div className="scoreboard__current">{currentWord}</div>
               ) : (
                 <>
-                  <div><span>Score</span><strong>{totals.scrabble}</strong></div>
-                  <div><span>Words</span><strong>{foundWords.length}</strong></div>
+                  <div>
+                    <span>Score</span>
+                    <strong>{totals.scrabble}</strong>
+                  </div>
+                  <div>
+                    <span>Words</span>
+                    <strong>{foundWords.length}</strong>
+                  </div>
                 </>
               )}
             </div>
@@ -217,7 +243,9 @@ export default function App() {
                 type="button"
                 className="btn btn--ghost"
                 onClick={clearSelection}
-                disabled={selection.length === 0 || submitting || phase !== 'playing'}
+                disabled={
+                  selection.length === 0 || submitting || phase !== 'playing'
+                }
               >
                 Clear
               </button>
@@ -235,7 +263,9 @@ export default function App() {
                 type="button"
                 className="btn btn--primary"
                 onClick={submitWord}
-                disabled={selection.length === 0 || submitting || phase !== 'playing'}
+                disabled={
+                  selection.length === 0 || submitting || phase !== 'playing'
+                }
               >
                 {submitting ? 'Checking…' : 'Submit'}
               </button>
@@ -260,7 +290,11 @@ export default function App() {
           setAuthOpen(true);
         }}
       />
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} initialMode={authMode} />
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        initialMode={authMode}
+      />
       <StatsModal open={statsOpen} onClose={() => setStatsOpen(false)} />
       {accountOpen && <AccountModal onClose={() => setAccountOpen(false)} />}
       <SummaryModal

@@ -2,7 +2,11 @@ import Modal from './Modal';
 
 export default function WhySignUpModal({ open, onClose, onSignUp }) {
   return (
-    <Modal open={open} title="Don't forget to make an account!" onClose={onClose}>
+    <Modal
+      open={open}
+      title="Don't forget to make an account!"
+      onClose={onClose}
+    >
       Why?
       <ul className="rules">
         <li>Automatic leaderboard entries.</li>

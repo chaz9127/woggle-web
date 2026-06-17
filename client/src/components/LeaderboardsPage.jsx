@@ -25,19 +25,23 @@ export default function LeaderboardsPage() {
     let cancelled = false;
     setLoading(true);
     apiFetch(`/api/games/leaderboard?date=${date}`)
-      .then((d) => { if (!cancelled) setData(d); })
-      .catch(() => { if (!cancelled) setData(null); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .then((d) => {
+        if (!cancelled) setData(d);
+      })
+      .catch(() => {
+        if (!cancelled) setData(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [date]);
 
   const viewingToday = date === today;
 
-  const rows = !data
-    ? []
-    : tab === 'today'
-      ? data.today
-      : data.allTime;
+  const rows = !data ? [] : tab === 'today' ? data.today : data.allTime;
 
   return (
     <div className="leaderboards">
@@ -48,15 +52,12 @@ export default function LeaderboardsPage() {
 
       {isAdmin && tab === 'today' && (
         <div className="leaderboards__admin-date">
-          <label>
-            View date
-            <input
-              type="date"
-              value={date}
-              max={today}
-              onChange={(e) => setDate(e.target.value || today)}
-            />
-          </label>
+          <input
+            type="date"
+            value={date}
+            max={today}
+            onChange={(e) => setDate(e.target.value || today)}
+          />
           {!viewingToday && (
             <button
               type="button"
@@ -75,29 +76,32 @@ export default function LeaderboardsPage() {
         ) : !data || rows.length === 0 ? (
           <p className="stats__empty">
             {tab === 'today'
-              ? (viewingToday ? 'No games today yet.' : 'No games on this date.')
+              ? viewingToday
+                ? 'No games today yet.'
+                : 'No games on this date.'
               : 'No games yet.'}
 
-      <div className="leaderboards__tabs" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === 'today'}
-          className={`leaderboards__tab ${tab === 'today' ? 'leaderboards__tab--active' : ''}`}
-          onClick={() => setTab('today')}
-        >
-          {viewingToday ? 'Today' : 'Daily'} {data?.todayDate ? `(${data.todayDate})` : ''}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === 'all-time'}
-          className={`leaderboards__tab ${tab === 'all-time' ? 'leaderboards__tab--active' : ''}`}
-          onClick={() => setTab('all-time')}
-        >
-          All-Time
-        </button>
-      </div>
+            <div className="leaderboards__tabs" role="tablist">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === 'today'}
+                className={`leaderboards__tab ${tab === 'today' ? 'leaderboards__tab--active' : ''}`}
+                onClick={() => setTab('today')}
+              >
+                {viewingToday ? 'Today' : 'Daily'}{' '}
+                {data?.todayDate ? `(${data.todayDate})` : ''}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === 'all-time'}
+                className={`leaderboards__tab ${tab === 'all-time' ? 'leaderboards__tab--active' : ''}`}
+                onClick={() => setTab('all-time')}
+              >
+                All-Time
+              </button>
+            </div>
           </p>
         ) : (
           <ol className="leaderboard__list">

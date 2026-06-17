@@ -1,9 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { generateBoard, isAdjacent } from "../utils/board";
-import { todayDateString } from "../utils/random";
-import { scrabbleScore, tilesToWord, tilesToLetterCount } from "../utils/scoring";
-import { loadResult, saveResult, clearResult } from "../utils/gameStorage";
-import { checkWord, suggestWord } from "./useDictionary";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { generateBoard, isAdjacent } from '../utils/board';
+import { todayDateString } from '../utils/random';
+import {
+  scrabbleScore,
+  tilesToWord,
+  tilesToLetterCount,
+} from '../utils/scoring';
+import { loadResult, saveResult, clearResult } from '../utils/gameStorage';
+import { checkWord, suggestWord } from './useDictionary';
 
 export const GAME_DURATION_SECONDS = 120;
 
@@ -11,13 +15,13 @@ export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
   const dateStr = useMemo(() => todayDateString(), []);
   const board = useMemo(() => generateBoard(dateStr), [dateStr]);
 
-  const [phase, setPhase] = useState(() => (locked ? "locked" : "idle"));
+  const [phase, setPhase] = useState(() => (locked ? 'locked' : 'idle'));
   const [selection, setSelection] = useState([]);
   const [foundWords, setFoundWords] = useState(() =>
-    locked ? loadResult(dateStr) ?? [] : []
+    locked ? (loadResult(dateStr) ?? []) : []
   );
-  const [error, setError] = useState("");
-  const [invalidWord, setInvalidWord] = useState("");
+  const [error, setError] = useState('');
+  const [invalidWord, setInvalidWord] = useState('');
   const [suggested, setSuggested] = useState(false);
   const [successPoints, setSuccessPoints] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -25,13 +29,13 @@ export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
   const [remaining, setRemaining] = useState(GAME_DURATION_SECONDS);
 
   useEffect(() => {
-    if (phase !== "playing" || startTime == null) return;
+    if (phase !== 'playing' || startTime == null) return;
     const tick = () => {
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
       const left = Math.max(0, GAME_DURATION_SECONDS - elapsed);
       setRemaining(left);
       if (left === 0) {
-        setPhase("done");
+        setPhase('done');
       }
     };
     tick();
@@ -42,7 +46,7 @@ export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
   useEffect(() => {
     if (!error) return;
     if (invalidWord) return; // keep sticky so the user can click "Suggest?"
-    const id = setTimeout(() => setError(""), 1800);
+    const id = setTimeout(() => setError(''), 1800);
     return () => clearTimeout(id);
   }, [error, invalidWord]);
 
@@ -53,26 +57,26 @@ export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
   }, [successPoints]);
 
   useEffect(() => {
-    if (phase === "done" || phase === "locked") {
+    if (phase === 'done' || phase === 'locked') {
       saveResult(dateStr, foundWords);
     }
   }, [phase, dateStr, foundWords]);
 
   useEffect(() => {
-    if (phase === "playing" || phase === "done") return;
-    if (locked && phase !== "locked") {
-      setPhase("locked");
+    if (phase === 'playing' || phase === 'done') return;
+    if (locked && phase !== 'locked') {
+      setPhase('locked');
       setFoundWords(loadResult(dateStr) ?? []);
-    } else if (!locked && phase === "locked") {
-      setPhase("idle");
+    } else if (!locked && phase === 'locked') {
+      setPhase('idle');
       setFoundWords([]);
       clearResult(dateStr);
     }
   }, [locked, phase, dateStr]);
 
   const selectTile = useCallback((tile) => {
-    setError("");
-    setInvalidWord("");
+    setError('');
+    setInvalidWord('');
     setSuggested(false);
     setSuccessPoints(null);
     setSelection((prev) => {
@@ -85,7 +89,11 @@ export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
         else if (!isAdjacent(last, tile)) next = prev;
         else next = [...prev, tile];
       }
-      if (next !== prev && typeof navigator !== "undefined" && navigator.vibrate) {
+      if (
+        next !== prev &&
+        typeof navigator !== 'undefined' &&
+        navigator.vibrate
+      ) {
         navigator.vibrate(15);
       }
       return next;
@@ -94,23 +102,23 @@ export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
 
   const clearSelection = useCallback(() => {
     setSelection([]);
-    setError("");
-    setInvalidWord("");
+    setError('');
+    setInvalidWord('');
     setSuggested(false);
     setSuccessPoints(null);
   }, []);
 
   const submitWord = useCallback(async () => {
-    if (submitting || phase !== "playing") return;
+    if (submitting || phase !== 'playing') return;
     const word = tilesToWord(selection);
     const letterCount = tilesToLetterCount(selection);
     if (letterCount < 3) {
-      setError("Too short!");
+      setError('Too short!');
       if (clearAfterInvalid) setSelection([]);
       return;
     }
     if (foundWords.some((w) => w.word === word)) {
-      setError("Already found");
+      setError('Already found');
       if (clearAfterInvalid) setSelection([]);
       return;
     }
@@ -118,7 +126,7 @@ export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
     const ok = await checkWord(word);
     setSubmitting(false);
     if (!ok) {
-      setError("Not a valid word");
+      setError('Not a valid word');
       setInvalidWord(word);
       setSuggested(false);
       if (clearAfterInvalid) setSelection([]);
@@ -132,7 +140,7 @@ export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
     };
     setFoundWords((prev) => [entry, ...prev]);
     setSelection([]);
-    setInvalidWord("");
+    setInvalidWord('');
     setSuggested(false);
     setSuccessPoints(entry.scrabble);
   }, [selection, foundWords, submitting, phase, clearAfterInvalid]);
@@ -145,26 +153,25 @@ export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
 
   const totals = useMemo(
     () =>
-      foundWords.reduce(
-        (acc, w) => ({ scrabble: acc.scrabble + w.scrabble }),
-        { scrabble: 0 }
-      ),
+      foundWords.reduce((acc, w) => ({ scrabble: acc.scrabble + w.scrabble }), {
+        scrabble: 0,
+      }),
     [foundWords]
   );
 
   const startGame = useCallback(() => {
     setSelection([]);
     setFoundWords([]);
-    setError("");
-    setInvalidWord("");
+    setError('');
+    setInvalidWord('');
     setSuggested(false);
     setRemaining(GAME_DURATION_SECONDS);
     setStartTime(Date.now());
-    setPhase("playing");
+    setPhase('playing');
   }, []);
 
   const dismissSummary = useCallback(() => {
-    setPhase("locked");
+    setPhase('locked');
   }, []);
 
   return {

@@ -19,7 +19,8 @@ export default function AccountModal({ onClose }) {
 
   const submitUsername = async (e) => {
     e.preventDefault();
-    setUsernameError(''); setUsernameMsg('');
+    setUsernameError('');
+    setUsernameMsg('');
     if (username === user?.username) {
       setUsernameMsg('That is already your username.');
       return;
@@ -37,7 +38,8 @@ export default function AccountModal({ onClose }) {
 
   const submitPassword = async (e) => {
     e.preventDefault();
-    setPasswordError(''); setPasswordMsg('');
+    setPasswordError('');
+    setPasswordMsg('');
     if (newPassword !== confirmPassword) {
       setPasswordError('New passwords do not match.');
       return;
@@ -45,7 +47,9 @@ export default function AccountModal({ onClose }) {
     setPasswordBusy(true);
     try {
       await changePassword(currentPassword, newPassword);
-      setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
       setPasswordMsg(user?.hasPassword ? 'Password changed.' : 'Password set.');
     } catch (err) {
       setPasswordError(err.message);
@@ -72,12 +76,18 @@ export default function AccountModal({ onClose }) {
         </label>
         {usernameError && <div className="auth-error">{usernameError}</div>}
         {usernameMsg && <div className="auth-success">{usernameMsg}</div>}
-        <button type="submit" className="btn btn--primary" disabled={usernameBusy}>
+        <button
+          type="submit"
+          className="btn btn--primary"
+          disabled={usernameBusy}
+        >
           {usernameBusy ? '…' : 'Save username'}
         </button>
       </form>
 
-      <div className="auth-divider"><span>{user?.hasPassword ? 'Change password' : 'Set password'}</span></div>
+      <div className="auth-divider">
+        <span>{user?.hasPassword ? 'Change password' : 'Set password'}</span>
+      </div>
 
       <form onSubmit={submitPassword} className="auth-form">
         {user?.hasPassword && (
@@ -116,8 +126,16 @@ export default function AccountModal({ onClose }) {
         </label>
         {passwordError && <div className="auth-error">{passwordError}</div>}
         {passwordMsg && <div className="auth-success">{passwordMsg}</div>}
-        <button type="submit" className="btn btn--primary" disabled={passwordBusy}>
-          {passwordBusy ? '…' : user?.hasPassword ? 'Change password' : 'Set password'}
+        <button
+          type="submit"
+          className="btn btn--primary"
+          disabled={passwordBusy}
+        >
+          {passwordBusy
+            ? '…'
+            : user?.hasPassword
+              ? 'Change password'
+              : 'Set password'}
         </button>
       </form>
     </Modal>

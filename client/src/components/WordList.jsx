@@ -15,7 +15,9 @@ export default function WordList({ words }) {
             <span className="wordlist__word">{w.word}</span>
             <span className="wordlist__meta">
               <span title="Letters">{w.letterCount}L</span>
-              <span title="Score" className="wordlist__scrabble">{w.scrabble}</span>
+              <span title="Score" className="wordlist__scrabble">
+                {w.scrabble}
+              </span>
             </span>
           </li>
         ))}

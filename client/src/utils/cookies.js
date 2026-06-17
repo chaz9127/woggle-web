@@ -26,13 +26,29 @@ function clear(name) {
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
 }
 
-export function getPlayedCookie() { return read(PLAYED_COOKIE); }
-export function setPlayedCookie(dateStr) { writeUntilMidnight(PLAYED_COOKIE, dateStr); }
-export function clearPlayedCookie() { clear(PLAYED_COOKIE); }
+export function getPlayedCookie() {
+  return read(PLAYED_COOKIE);
+}
+export function setPlayedCookie(dateStr) {
+  writeUntilMidnight(PLAYED_COOKIE, dateStr);
+}
+export function clearPlayedCookie() {
+  clear(PLAYED_COOKIE);
+}
 
-export function getOverrideCookie() { return read(OVERRIDE_COOKIE); }
-export function setOverrideCookie(dateStr) { writeUntilMidnight(OVERRIDE_COOKIE, dateStr); }
-export function clearOverrideCookie() { clear(OVERRIDE_COOKIE); }
+export function getOverrideCookie() {
+  return read(OVERRIDE_COOKIE);
+}
+export function setOverrideCookie(dateStr) {
+  writeUntilMidnight(OVERRIDE_COOKIE, dateStr);
+}
+export function clearOverrideCookie() {
+  clear(OVERRIDE_COOKIE);
+}
 
-export function isTooltipDismissed(name) { return read(`${TOOLTIP_PREFIX}${name}`) === '1'; }
-export function dismissTooltip(name) { writeForever(`${TOOLTIP_PREFIX}${name}`, '1'); }
+export function isTooltipDismissed(name) {
+  return read(`${TOOLTIP_PREFIX}${name}`) === '1';
+}
+export function dismissTooltip(name) {
+  writeForever(`${TOOLTIP_PREFIX}${name}`, '1');
+}

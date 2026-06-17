@@ -18,7 +18,20 @@ const RANGE_OPTIONS = [
 ];
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTH_LABELS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
 
 function parseDate(str) {
   return new Date(str + 'T00:00:00Z');
@@ -65,7 +78,8 @@ function bucketMonth({ start, end, days }) {
   }
   const countsByDate = new Map(days.map((d) => [d.date, d.count]));
   const labels = buckets.map(
-    (b) => `Wk of ${MONTH_LABELS[b.start.getUTCMonth()]} ${b.start.getUTCDate()}`
+    (b) =>
+      `Wk of ${MONTH_LABELS[b.start.getUTCMonth()]} ${b.start.getUTCDate()}`
   );
   const values = buckets.map((b) => {
     let sum = 0;
@@ -116,9 +130,15 @@ export default function AdminVisualizations() {
         if (!ok) setError(body?.error || 'Failed to load chart data');
         else setData(body);
       })
-      .catch((err) => { if (!cancelled) setError(err.message); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .catch((err) => {
+        if (!cancelled) setError(err.message);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [range]);
 
   const chart = useMemo(() => {
@@ -160,7 +180,9 @@ export default function AdminVisualizations() {
           className="admin__role-select"
         >
           {RANGE_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
           ))}
         </select>
       </div>

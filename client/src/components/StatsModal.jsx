@@ -16,10 +16,18 @@ export default function StatsModal({ open, onClose }) {
     let cancelled = false;
     setLoading(true);
     apiFetch('/api/games/me')
-      .then((data) => { if (!cancelled) setStats(data.stats); })
-      .catch(() => { if (!cancelled) setStats(null); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .then((data) => {
+        if (!cancelled) setStats(data.stats);
+      })
+      .catch(() => {
+        if (!cancelled) setStats(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [open]);
 
   return (

@@ -107,7 +107,10 @@ function isFormable(board, word) {
     path.join(__dirname, "boggle-dice.json"),
     "utf8"
   );
-  if (JSON.stringify(JSON.parse(clientRaw)) !== JSON.stringify(JSON.parse(serverRaw))) {
+  if (
+    JSON.stringify(JSON.parse(clientRaw)) !==
+    JSON.stringify(JSON.parse(serverRaw))
+  ) {
     throw new Error(
       "boggle-dice.json has diverged between client/src/data and server/src — " +
         "board validation would reject valid words. Sync the two files."

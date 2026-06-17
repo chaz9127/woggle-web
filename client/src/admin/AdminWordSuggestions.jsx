@@ -31,15 +31,25 @@ export default function AdminWordSuggestions({ onPendingCountChange } = {}) {
   useEffect(() => {
     let cancelled = false;
     apiFetch('/api/admin/word-suggestions')
-      .then((data) => { if (!cancelled) setSuggestions(data.suggestions); })
-      .catch((err) => { if (!cancelled) setError(err.message); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .then((data) => {
+        if (!cancelled) setSuggestions(data.suggestions);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
     if (onPendingCountChange) {
-      onPendingCountChange(suggestions.filter((s) => s.status === 'pending').length);
+      onPendingCountChange(
+        suggestions.filter((s) => s.status === 'pending').length
+      );
     }
   }, [suggestions, onPendingCountChange]);
 
@@ -61,10 +71,13 @@ export default function AdminWordSuggestions({ onPendingCountChange } = {}) {
       list.map((s) => (s.word === word ? { ...s, status } : s))
     );
     try {
-      await apiFetch(`/api/admin/word-suggestions/${encodeURIComponent(word)}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status }),
-      });
+      await apiFetch(
+        `/api/admin/word-suggestions/${encodeURIComponent(word)}/status`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({ status }),
+        }
+      );
     } catch (err) {
       setSuggestions(prev);
       setError(err.message);
@@ -76,14 +89,16 @@ export default function AdminWordSuggestions({ onPendingCountChange } = {}) {
   if (loading) return <p className="admin__empty">Loading suggestions…</p>;
   if (error) return <p className="admin__error">{error}</p>;
 
-  const visible = statusFilter === 'all'
-    ? suggestions
-    : suggestions.filter((s) => s.status === statusFilter);
+  const visible =
+    statusFilter === 'all'
+      ? suggestions
+      : suggestions.filter((s) => s.status === statusFilter);
 
   return (
     <div className="admin__section">
       <h3 className="admin__section-title">
-        Word suggestions ({visible.length}{statusFilter !== 'all' ? ` of ${suggestions.length}` : ''})
+        Word suggestions ({visible.length}
+        {statusFilter !== 'all' ? ` of ${suggestions.length}` : ''})
       </h3>
       {suggestions.length === 0 ? (
         <p className="admin__empty">No suggestions yet.</p>
@@ -105,7 +120,9 @@ export default function AdminWordSuggestions({ onPendingCountChange } = {}) {
                     >
                       <option value="all">All</option>
                       {STATUS_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -114,11 +131,17 @@ export default function AdminWordSuggestions({ onPendingCountChange } = {}) {
             </thead>
             <tbody>
               {visible.length === 0 && (
-                <tr><td colSpan={4} className="admin__empty">No suggestions match this filter.</td></tr>
+                <tr>
+                  <td colSpan={4} className="admin__empty">
+                    No suggestions match this filter.
+                  </td>
+                </tr>
               )}
               {visible.map((s) => (
                 <tr key={s.word}>
-                  <td><strong>{s.word.toUpperCase()}</strong></td>
+                  <td>
+                    <strong>{s.word.toUpperCase()}</strong>
+                  </td>
                   <td className="admin__muted">{s.user_email || '—'}</td>
                   <td className="admin__muted">{s.created_at}</td>
                   <td>
@@ -129,7 +152,9 @@ export default function AdminWordSuggestions({ onPendingCountChange } = {}) {
                       className={`admin__role-select admin__status-select admin__status-select--${s.status}`}
                     >
                       {STATUS_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
                       ))}
                     </select>
                   </td>

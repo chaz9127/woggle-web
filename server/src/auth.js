@@ -31,7 +31,10 @@ db.exec(`
     END;
 `);
 
-const userCols = db.prepare("PRAGMA table_info(users)").all().map((c) => c.name);
+const userCols = db
+  .prepare("PRAGMA table_info(users)")
+  .all()
+  .map((c) => c.name);
 if (!userCols.includes("role")) {
   db.exec(
     "ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'tester', 'user'))"
@@ -53,15 +56,11 @@ const insertLocalUser = db.prepare(
 const insertGoogleUser = db.prepare(
   "INSERT INTO users (email, google_id) VALUES (?, ?)"
 );
-const updateUsername = db.prepare(
-  "UPDATE users SET username = ? WHERE id = ?"
-);
+const updateUsername = db.prepare("UPDATE users SET username = ? WHERE id = ?");
 const updatePasswordHash = db.prepare(
   "UPDATE users SET password_hash = ? WHERE id = ?"
 );
-const linkGoogleId = db.prepare(
-  "UPDATE users SET google_id = ? WHERE id = ?"
-);
+const linkGoogleId = db.prepare("UPDATE users SET google_id = ? WHERE id = ?");
 const updateClearAfterInvalid = db.prepare(
   "UPDATE users SET clear_after_invalid = ? WHERE id = ?"
 );
@@ -95,7 +94,11 @@ passport.deserializeUser((id, done) => {
 passport.use(
   new LocalStrategy({ usernameField: "email" }, (email, password, done) => {
     try {
-      const user = findByEmail.get(String(email || "").toLowerCase().trim());
+      const user = findByEmail.get(
+        String(email || "")
+          .toLowerCase()
+          .trim()
+      );
       if (!user || !user.password_hash) {
         return done(null, false, { message: "Invalid credentials" });
       }
@@ -117,14 +120,15 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         callbackURL:
-          process.env.GOOGLE_CALLBACK_URL ||
-          "/api/auth/google/callback",
+          process.env.GOOGLE_CALLBACK_URL || "/api/auth/google/callback",
       },
       (accessToken, refreshToken, profile, done) => {
         try {
           const email = (profile.emails?.[0]?.value || "").toLowerCase();
           if (!email) {
-            return done(null, false, { message: "Google account has no email" });
+            return done(null, false, {
+              message: "Google account has no email",
+            });
           }
           let user = findByGoogleId.get(profile.id);
           if (!user) {
@@ -166,7 +170,9 @@ function buildAuthRouter() {
 
   router.post("/register", authLimiter, async (req, res, next) => {
     try {
-      const email = String(req.body?.email || "").toLowerCase().trim();
+      const email = String(req.body?.email || "")
+        .toLowerCase()
+        .trim();
       const username = String(req.body?.username || "").trim();
       const password = String(req.body?.password || "");
 
@@ -204,7 +210,9 @@ function buildAuthRouter() {
     passport.authenticate("local", (err, user, info) => {
       if (err) return next(err);
       if (!user) {
-        return res.status(401).json({ error: info?.message || "Invalid credentials" });
+        return res
+          .status(401)
+          .json({ error: info?.message || "Invalid credentials" });
       }
       req.login(user, (loginErr) => {
         if (loginErr) return next(loginErr);
@@ -254,7 +262,9 @@ function buildAuthRouter() {
       if (user.password_hash) {
         const ok = await bcrypt.compare(currentPassword, user.password_hash);
         if (!ok) {
-          return res.status(403).json({ error: "Current password is incorrect" });
+          return res
+            .status(403)
+            .json({ error: "Current password is incorrect" });
         }
       }
 
@@ -268,11 +278,21 @@ function buildAuthRouter() {
 
   router.patch("/preferences", requireAuth, (req, res) => {
     const { clearAfterInvalid, submitAfterSwipe } = req.body || {};
-    if (clearAfterInvalid !== undefined && typeof clearAfterInvalid !== "boolean") {
-      return res.status(400).json({ error: "clearAfterInvalid must be boolean" });
+    if (
+      clearAfterInvalid !== undefined &&
+      typeof clearAfterInvalid !== "boolean"
+    ) {
+      return res
+        .status(400)
+        .json({ error: "clearAfterInvalid must be boolean" });
     }
-    if (submitAfterSwipe !== undefined && typeof submitAfterSwipe !== "boolean") {
-      return res.status(400).json({ error: "submitAfterSwipe must be boolean" });
+    if (
+      submitAfterSwipe !== undefined &&
+      typeof submitAfterSwipe !== "boolean"
+    ) {
+      return res
+        .status(400)
+        .json({ error: "submitAfterSwipe must be boolean" });
     }
     if (clearAfterInvalid === undefined && submitAfterSwipe === undefined) {
       return res.status(400).json({ error: "no preferences provided" });
@@ -319,8 +339,11 @@ function buildSessionMiddleware() {
 
   // In production a forgeable session secret means anyone can mint a session for
   // any user (including admins), so refuse to start with the dev fallback.
-  if (isProd && (!process.env.SESSION_SECRET ||
-      process.env.SESSION_SECRET === INSECURE_SESSION_SECRET)) {
+  if (
+    isProd &&
+    (!process.env.SESSION_SECRET ||
+      process.env.SESSION_SECRET === INSECURE_SESSION_SECRET)
+  ) {
     throw new Error(
       "SESSION_SECRET must be set to a strong random value in production"
     );

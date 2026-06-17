@@ -7,7 +7,9 @@ import { isTooltipDismissed, dismissTooltip } from '../utils/cookies';
 // `config.show` and by whether the target element exists. The X button
 // permanently dismisses it via a cookie keyed on `config.name`.
 export default function FeatureTooltip({ config, context = {} }) {
-  const [dismissed, setDismissed] = useState(() => isTooltipDismissed(config.name));
+  const [dismissed, setDismissed] = useState(() =>
+    isTooltipDismissed(config.name)
+  );
   const [pos, setPos] = useState(null);
   const ref = useRef(null);
 
@@ -26,7 +28,10 @@ export default function FeatureTooltip({ config, context = {} }) {
       const tipW = el.offsetWidth || 240;
       const margin = 8;
       const center = r.left + r.width / 2;
-      const left = Math.max(margin, Math.min(center - tipW / 2, window.innerWidth - tipW - margin));
+      const left = Math.max(
+        margin,
+        Math.min(center - tipW / 2, window.innerWidth - tipW - margin)
+      );
       const caret = Math.max(14, Math.min(center - left, tipW - 14));
       setPos({ top: r.bottom + 10, left, caret });
     };
@@ -52,9 +57,11 @@ export default function FeatureTooltip({ config, context = {} }) {
       className="feature-tooltip"
       id={config.name}
       role="status"
-      style={pos
-        ? { top: pos.top, left: pos.left, '--caret-left': `${pos.caret}px` }
-        : { visibility: 'hidden' }}
+      style={
+        pos
+          ? { top: pos.top, left: pos.left, '--caret-left': `${pos.caret}px` }
+          : { visibility: 'hidden' }
+      }
     >
       <button
         type="button"

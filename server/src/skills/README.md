@@ -17,6 +17,7 @@ npm install -D nodemon
 ```
 
 `package.json` scripts:
+
 ```json
 {
   "scripts": {
@@ -27,6 +28,7 @@ npm install -D nodemon
 ```
 
 For TypeScript:
+
 ```bash
 npm install -D typescript ts-node @types/express @types/node nodemon
 ```
@@ -104,20 +106,27 @@ connectDB().then(() => {
 ```js
 // routes/users.js
 const router = require('express').Router();
-const { getUsers, getUserById, createUser, updateUser, deleteUser } = require('../controllers/userController');
+const {
+  getUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  deleteUser,
+} = require('../controllers/userController');
 const { authenticate } = require('../middleware/auth');
 const { validateUser } = require('../middleware/validate');
 
-router.get('/',           authenticate, getUsers);
-router.get('/:id',        authenticate, getUserById);
-router.post('/',          validateUser, createUser);
-router.put('/:id',        authenticate, validateUser, updateUser);
-router.delete('/:id',     authenticate, deleteUser);
+router.get('/', authenticate, getUsers);
+router.get('/:id', authenticate, getUserById);
+router.post('/', validateUser, createUser);
+router.put('/:id', authenticate, validateUser, updateUser);
+router.delete('/:id', authenticate, deleteUser);
 
 module.exports = router;
 ```
 
 **REST conventions**:
+
 - `GET /resources` → list
 - `GET /resources/:id` → single item
 - `POST /resources` → create (201 response)
@@ -160,12 +169,13 @@ module.exports = (err, req, res, next) => {
   const status = err.status || err.statusCode || 500;
   res.status(status).json({
     error: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 };
 ```
 
 Create a reusable error class:
+
 ```js
 class AppError extends Error {
   constructor(message, status = 400) {
@@ -187,7 +197,7 @@ const { z } = require('zod');
 const userSchema = z.object({
   name: z.string().min(1),
   email: z.string().email(),
-  password: z.string().min(8)
+  password: z.string().min(8),
 });
 
 exports.validateUser = (req, res, next) => {
@@ -223,6 +233,7 @@ exports.authenticate = (req, res, next) => {
 ```
 
 Login route:
+
 ```js
 // controllers/authController.js
 const jwt = require('jsonwebtoken');
@@ -236,7 +247,11 @@ exports.login = async (req, res, next) => {
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-    const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
     res.json({ token });
   } catch (err) {
     next(err);
@@ -247,9 +262,11 @@ exports.login = async (req, res, next) => {
 ## Database Integration
 
 ### MongoDB (Mongoose)
+
 ```bash
 npm install mongoose
 ```
+
 ```js
 // config/db.js
 const mongoose = require('mongoose');
@@ -257,19 +274,24 @@ exports.connectDB = () => mongoose.connect(process.env.MONGO_URI);
 
 // models/User.js
 const { Schema, model } = require('mongoose');
-const userSchema = new Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  passwordHash: String
-}, { timestamps: true });
+const userSchema = new Schema(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    passwordHash: String,
+  },
+  { timestamps: true }
+);
 module.exports = model('User', userSchema);
 ```
 
 ### PostgreSQL (Prisma ORM — recommended)
+
 ```bash
 npm install prisma @prisma/client
 npx prisma init
 ```
+
 ```prisma
 // prisma/schema.prisma
 model User {
@@ -279,20 +301,26 @@ model User {
   createdAt DateTime @default(now())
 }
 ```
+
 ```bash
 npx prisma migrate dev --name init
 ```
+
 ```js
 // config/db.js
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-exports.connectDB = async () => { await prisma.$connect(); return prisma; };
+exports.connectDB = async () => {
+  await prisma.$connect();
+  return prisma;
+};
 exports.prisma = prisma;
 ```
 
 ## Environment Variables
 
 Minimum `.env`:
+
 ```
 PORT=3001
 NODE_ENV=development
@@ -311,9 +339,13 @@ Always add `.env` to `.gitignore`.
 ```bash
 npm install multer
 ```
+
 ```js
 const multer = require('multer');
-const upload = multer({ dest: 'uploads/', limits: { fileSize: 5 * 1024 * 1024 } });
+const upload = multer({
+  dest: 'uploads/',
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
 
 router.post('/avatar', authenticate, upload.single('file'), (req, res) => {
   res.json({ path: req.file.path });
@@ -323,9 +355,11 @@ router.post('/avatar', authenticate, upload.single('file'), (req, res) => {
 ## Testing
 
 Use **Jest** + **Supertest**:
+
 ```bash
 npm install -D jest supertest
 ```
+
 ```js
 const request = require('supertest');
 const app = require('../src/app');
@@ -341,6 +375,7 @@ describe('GET /api/users', () => {
 ## Full-Stack Integration Notes
 
 When paired with a React frontend (see `react-development` skill):
+
 - All routes live under `/api/` prefix so Vite proxy can forward cleanly
 - Return consistent JSON shapes: `{ data: ... }` for success, `{ error: "..." }` for failures
 - Set CORS `origin` to the Vite dev server URL (`http://localhost:5173`) in development
@@ -348,6 +383,8 @@ When paired with a React frontend (see `react-development` skill):
   ```js
   // Serve React build from Express (monorepo):
   app.use(express.static(path.join(__dirname, '../client/dist')));
-  app.get('*', (req, res) => res.sendFile(path.join(__dirname, '../client/dist/index.html')));
+  app.get('*', (req, res) =>
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'))
+  );
   ```
 - Auth: return a JWT on login; React stores it in memory or a context and sends it as `Authorization: Bearer <token>` on subsequent requests

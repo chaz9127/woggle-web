@@ -1,8 +1,12 @@
-import { useState } from "react";
-import { buildShareText, buildWordsText, copyToClipboard } from "../utils/share";
-import { useAuth } from "../auth/AuthContext";
-import FeatureTooltip from "./FeatureTooltip";
-import { featureTooltips } from "../config/featureTooltips";
+import { useState } from 'react';
+import {
+  buildShareText,
+  buildWordsText,
+  copyToClipboard,
+} from '../utils/share';
+import { useAuth } from '../auth/AuthContext';
+import FeatureTooltip from './FeatureTooltip';
+import { featureTooltips } from '../config/featureTooltips';
 
 export default function StartScreen({
   dateStr,
@@ -17,35 +21,37 @@ export default function StartScreen({
   theme,
   stats,
 }) {
-  const locked = phase === "locked" || lockedProp;
-  const [shareStatus, setShareStatus] = useState("");
-  const [wordsStatus, setWordsStatus] = useState("");
+  const locked = phase === 'locked' || lockedProp;
+  const [shareStatus, setShareStatus] = useState('');
+  const [wordsStatus, setWordsStatus] = useState('');
   const { user } = useAuth();
-  const isPrivileged = user?.role === "admin" || user?.role === "tester";
+  const isPrivileged = user?.role === 'admin' || user?.role === 'tester';
 
   const sharePreview =
     locked && board
       ? buildShareText({ board, foundWords, totals, dateStr, theme })
-      : "";
+      : '';
 
   const handleShare = async () => {
     const text = buildShareText({ board, foundWords, totals, dateStr, theme });
     const ok = await copyToClipboard(text);
-    setShareStatus(ok ? "Copied!" : "Copy failed");
-    setTimeout(() => setShareStatus(""), 1800);
+    setShareStatus(ok ? 'Copied!' : 'Copy failed');
+    setTimeout(() => setShareStatus(''), 1800);
   };
 
   const handleCopyWords = async () => {
     const text = buildWordsText({ foundWords, totals, dateStr });
     const ok = await copyToClipboard(text);
-    setWordsStatus(ok ? "Copied!" : "Copy failed");
-    setTimeout(() => setWordsStatus(""), 1800);
+    setWordsStatus(ok ? 'Copied!' : 'Copy failed');
+    setTimeout(() => setWordsStatus(''), 1800);
   };
 
   return (
     <div className="start">
       <div className="start__card">
-        <h2 className="start__title">{locked ? "See you tomorrow!" : "Ready to play?"}</h2>
+        <h2 className="start__title">
+          {locked ? 'See you tomorrow!' : 'Ready to play?'}
+        </h2>
         <p className="start__date">Daily puzzle · {dateStr}</p>
 
         {locked ? (
@@ -88,7 +94,7 @@ export default function StartScreen({
               className="btn btn--primary"
               onClick={handleShare}
             >
-              {shareStatus || "Share my score"}
+              {shareStatus || 'Share my score'}
             </button>
             <button
               type="button"
@@ -96,14 +102,14 @@ export default function StartScreen({
               onClick={handleCopyWords}
               disabled={foundWords.length === 0}
             >
-              {wordsStatus || "Copy my words"}
+              {wordsStatus || 'Copy my words'}
             </button>
           </>
         ) : (
           <>
             <p className="start__lead">
-              Find as many words as you can in <strong>2 minutes</strong>.
-              Tap adjacent letters (including diagonals) to spell words of 3+
+              Find as many words as you can in <strong>2 minutes</strong>. Tap
+              adjacent letters (including diagonals) to spell words of 3+
               letters. Once the timer runs out, you're done for the day.
             </p>
             <button

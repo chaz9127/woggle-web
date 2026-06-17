@@ -30,10 +30,18 @@ export default function AdminUsers() {
   useEffect(() => {
     let cancelled = false;
     apiFetch('/api/admin/users')
-      .then((data) => { if (!cancelled) setUsers(data.users); })
-      .catch((err) => { if (!cancelled) setError(err.message); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .then((data) => {
+        if (!cancelled) setUsers(data.users);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const changeRole = async (id, role) => {
@@ -71,7 +79,9 @@ export default function AdminUsers() {
           <tbody>
             {users.map((u) => (
               <tr key={u.id}>
-                <td>{u.username || <span className="admin__muted">(none)</span>}</td>
+                <td>
+                  {u.username || <span className="admin__muted">(none)</span>}
+                </td>
                 <td>{u.email}</td>
                 <td>
                   <select
@@ -81,7 +91,9 @@ export default function AdminUsers() {
                     className="admin__role-select"
                   >
                     {ROLE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
                     ))}
                   </select>
                 </td>

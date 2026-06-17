@@ -52,9 +52,14 @@ const suggestionsCols = db
   .all()
   .map((c) => c.name);
 if (!suggestionsCols.includes("user_id")) {
-  db.exec("ALTER TABLE word_suggestions ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE SET NULL");
+  db.exec(
+    "ALTER TABLE word_suggestions ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE SET NULL"
+  );
 }
-if (suggestionsCols.includes("approved") && !suggestionsCols.includes("status")) {
+if (
+  suggestionsCols.includes("approved") &&
+  !suggestionsCols.includes("status")
+) {
   db.exec(`
     BEGIN;
     CREATE TABLE word_suggestions_new (
@@ -86,7 +91,9 @@ db.exec(`
 
 const selectStmt = db.prepare("SELECT 1 FROM words WHERE word = ?");
 const insertStmt = db.prepare("INSERT OR IGNORE INTO words(word) VALUES (?)");
-const insertSuggestionStmt = db.prepare("INSERT OR IGNORE INTO word_suggestions(word, user_id) VALUES (?, ?)");
+const insertSuggestionStmt = db.prepare(
+  "INSERT OR IGNORE INTO word_suggestions(word, user_id) VALUES (?, ?)"
+);
 
 const UPSTREAM = "https://api.dictionaryapi.dev/api/v2/entries/en/";
 const TIMEOUT_MS = 4000;

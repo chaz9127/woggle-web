@@ -5,7 +5,7 @@ export function scrabbleScore(tiles) {
 export function tilesToWord(tiles) {
   return tiles
     .map((t) => t.letter)
-    .join("")
+    .join('')
     .toUpperCase();
 }
 

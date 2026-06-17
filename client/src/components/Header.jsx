@@ -4,9 +4,19 @@ import { useAuth } from '../auth/AuthContext';
 import FeatureTooltip from './FeatureTooltip';
 import { featureTooltips } from '../config/featureTooltips';
 
-export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, onOpenAccount, onOpenStats, onOpenLeaderboard, remaining, showTimer }) {
-  const mm = String(Math.floor((remaining ?? 0) / 60)).padStart(1, "0");
-  const ss = String((remaining ?? 0) % 60).padStart(2, "0");
+export default function Header({
+  theme,
+  onToggleTheme,
+  onOpenRules,
+  onOpenAuth,
+  onOpenAccount,
+  onOpenStats,
+  onOpenLeaderboard,
+  remaining,
+  showTimer,
+}) {
+  const mm = String(Math.floor((remaining ?? 0) / 60)).padStart(1, '0');
+  const ss = String((remaining ?? 0) % 60).padStart(2, '0');
   const low = showTimer && remaining <= 10;
   const { user, logout, updatePreferences } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -40,7 +50,8 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
   useEffect(() => {
     if (!menuOpen) return;
     const onDoc = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+      if (menuRef.current && !menuRef.current.contains(e.target))
+        setMenuOpen(false);
     };
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
@@ -54,10 +65,10 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
         </a>
       </h1>
       <div
-        className={`header__timer ${low ? "header__timer--low" : ""}`}
+        className={`header__timer ${low ? 'header__timer--low' : ''}`}
         aria-label="Time remaining"
         aria-hidden={!showTimer}
-        style={{ visibility: showTimer ? "visible" : "hidden" }}
+        style={{ visibility: showTimer ? 'visible' : 'hidden' }}
       >
         {mm}:{ss}
       </div>
@@ -110,7 +121,10 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
                   <button
                     type="button"
                     className="icon-btn header__menu-edit"
-                    onClick={() => { setMenuOpen(false); onOpenAccount?.(); }}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onOpenAccount?.();
+                    }}
                     aria-label="Edit account"
                     title="Edit account"
                   >
@@ -121,7 +135,10 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
               <button
                 type="button"
                 className="header__menu-item"
-                onClick={() => { setMenuOpen(false); onOpenLeaderboard?.(); }}
+                onClick={() => {
+                  setMenuOpen(false);
+                  onOpenLeaderboard?.();
+                }}
               >
                 Leaderboard
               </button>
@@ -130,7 +147,10 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
                   <button
                     type="button"
                     className="header__menu-item"
-                    onClick={() => { setMenuOpen(false); onOpenStats?.(); }}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onOpenStats?.();
+                    }}
                   >
                     Stats
                   </button>
@@ -145,7 +165,9 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
                   )}
                   <label className="header__menu-item header__menu-toggle">
                     <span>Clear after invalid word</span>
-                    <span className={`switch ${user.clearAfterInvalid ? 'switch--on' : ''} ${prefBusy ? 'switch--busy' : ''}`}>
+                    <span
+                      className={`switch ${user.clearAfterInvalid ? 'switch--on' : ''} ${prefBusy ? 'switch--busy' : ''}`}
+                    >
                       <input
                         type="checkbox"
                         className="switch__input"
@@ -158,7 +180,9 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
                   </label>
                   <label className="header__menu-item header__menu-toggle">
                     <span>Submit word after swipe</span>
-                    <span className={`switch ${user.submitAfterSwipe ? 'switch--on' : ''} ${prefBusy ? 'switch--busy' : ''}`}>
+                    <span
+                      className={`switch ${user.submitAfterSwipe ? 'switch--on' : ''} ${prefBusy ? 'switch--busy' : ''}`}
+                    >
                       <input
                         type="checkbox"
                         className="switch__input"
@@ -173,7 +197,9 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
               )}
               <label className="header__menu-item header__menu-toggle">
                 <span>Dark mode</span>
-                <span className={`switch ${theme === 'dark' ? 'switch--on' : ''}`}>
+                <span
+                  className={`switch ${theme === 'dark' ? 'switch--on' : ''}`}
+                >
                   <input
                     type="checkbox"
                     className="switch__input"
@@ -187,7 +213,10 @@ export default function Header({ theme, onToggleTheme, onOpenRules, onOpenAuth, 
                 <button
                   type="button"
                   className="header__menu-item"
-                  onClick={() => { setMenuOpen(false); logout(); }}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    logout();
+                  }}
                 >
                   Sign out
                 </button>

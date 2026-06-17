@@ -10,17 +10,17 @@
 //              (The tooltip also only shows when its `targetId` element exists.)
 export const featureTooltips = {
   editAccount: {
-    name: "editAccount",
-    targetId: "header-menu-button",
-    title: "New Feature!",
-    body: "You can now change your username or password from the menu.",
+    name: 'editAccount',
+    targetId: 'header-menu-button',
+    title: 'New Feature!',
+    body: 'You can now change your username or password from the menu.',
     show: ({ user, dismissed }) => !!user && !dismissed,
   },
   leaderboardSignUp: {
-    name: "leaderboardSignUp",
-    targetId: "start-signup-button",
-    title: "Sign up for the leaderboard!",
-    body: "Sign up to be automatically added to the leaderboard and see how you rank against others!",
+    name: 'leaderboardSignUp',
+    targetId: 'start-signup-button',
+    title: 'Sign up for the leaderboard!',
+    body: 'Sign up to be automatically added to the leaderboard and see how you rank against others!',
     show: ({ user, dismissed }) => !user && !dismissed,
   },
 };

@@ -25,15 +25,16 @@ For full-stack setups with an Express backend, configure Vite's dev proxy so `/a
 export default {
   server: {
     proxy: {
-      '/api': 'http://localhost:3001'
-    }
-  }
-}
+      '/api': 'http://localhost:3001',
+    },
+  },
+};
 ```
 
 ## Component Patterns
 
 **Prefer**:
+
 - Functional components with hooks — never class components unless maintaining legacy code
 - Named exports for components (default export only for page-level components)
 - Co-locate component + its styles + its tests in one folder
@@ -51,6 +52,7 @@ src/
 ```
 
 **Hooks discipline**:
+
 - `useState` for local UI state only
 - `useEffect` — always specify the dependency array; document why deps are omitted if ever
 - Extract reusable logic into custom hooks (`use` prefix, lives in `src/hooks/`)
@@ -58,12 +60,12 @@ src/
 
 ## State Management
 
-| Scope | Solution |
-|---|---|
-| Local component state | `useState` / `useReducer` |
-| Shared UI state (theme, auth) | `useContext` + `useReducer` |
-| Server state / caching | **React Query** (`@tanstack/react-query`) — strongly preferred |
-| Complex global state | Zustand (lightweight) or Redux Toolkit (large apps) |
+| Scope                         | Solution                                                       |
+| ----------------------------- | -------------------------------------------------------------- |
+| Local component state         | `useState` / `useReducer`                                      |
+| Shared UI state (theme, auth) | `useContext` + `useReducer`                                    |
+| Server state / caching        | **React Query** (`@tanstack/react-query`) — strongly preferred |
+| Complex global state          | Zustand (lightweight) or Redux Toolkit (large apps)            |
 
 Avoid prop-drilling beyond 2 levels — introduce context or lift state.
 
@@ -77,26 +79,29 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 // Fetch
 const { data, isLoading, error } = useQuery({
   queryKey: ['users'],
-  queryFn: () => fetch('/api/users').then(r => r.json())
+  queryFn: () => fetch('/api/users').then((r) => r.json()),
 });
 
 // Mutate + invalidate
 const qc = useQueryClient();
 const { mutate } = useMutation({
-  mutationFn: (newUser) => fetch('/api/users', { method: 'POST', body: JSON.stringify(newUser) }),
-  onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] })
+  mutationFn: (newUser) =>
+    fetch('/api/users', { method: 'POST', body: JSON.stringify(newUser) }),
+  onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
 });
 ```
 
 Encapsulate fetch logic in `src/services/`:
+
 ```js
 // services/userService.js
-export const getUsers = () => fetch('/api/users').then(r => r.json());
-export const createUser = (data) => fetch('/api/users', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(data)
-}).then(r => r.json());
+export const getUsers = () => fetch('/api/users').then((r) => r.json());
+export const createUser = (data) =>
+  fetch('/api/users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  }).then((r) => r.json());
 ```
 
 ## Routing
@@ -104,7 +109,14 @@ export const createUser = (data) => fetch('/api/users', {
 Use **React Router v6**:
 
 ```jsx
-import { BrowserRouter, Routes, Route, Link, useParams, useNavigate } from 'react-router-dom';
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  useParams,
+  useNavigate,
+} from 'react-router-dom';
 
 function App() {
   return (
@@ -120,6 +132,7 @@ function App() {
 ```
 
 Protect routes with a wrapper component:
+
 ```jsx
 function PrivateRoute({ children }) {
   const { user } = useAuth();
@@ -135,7 +148,11 @@ Use **React Hook Form** for non-trivial forms:
 import { useForm } from 'react-hook-form';
 
 function LoginForm() {
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
   const onSubmit = (data) => console.log(data);
 
   return (
@@ -179,7 +196,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 
 <ErrorBoundary fallback={<ErrorPage />}>
   <App />
-</ErrorBoundary>
+</ErrorBoundary>;
 ```
 
 ## Testing
@@ -202,22 +219,23 @@ test('shows user name', async () => {
 
 ## Common Packages Reference
 
-| Need | Package |
-|---|---|
-| Routing | `react-router-dom` |
-| Server state | `@tanstack/react-query` |
-| Forms | `react-hook-form` |
-| Validation | `zod` |
-| Global state | `zustand` |
-| Animation | `framer-motion` |
-| Icons | `lucide-react` |
-| Dates | `date-fns` |
-| HTTP client | `axios` or native `fetch` |
-| Styling | CSS Modules, Tailwind, or `styled-components` |
+| Need         | Package                                       |
+| ------------ | --------------------------------------------- |
+| Routing      | `react-router-dom`                            |
+| Server state | `@tanstack/react-query`                       |
+| Forms        | `react-hook-form`                             |
+| Validation   | `zod`                                         |
+| Global state | `zustand`                                     |
+| Animation    | `framer-motion`                               |
+| Icons        | `lucide-react`                                |
+| Dates        | `date-fns`                                    |
+| HTTP client  | `axios` or native `fetch`                     |
+| Styling      | CSS Modules, Tailwind, or `styled-components` |
 
 ## Full-Stack Integration Notes
 
 When building with an Express backend (see `express-api` skill):
+
 - Keep all API calls in `src/services/` — never call `fetch` directly in components
 - Use the Vite proxy for local dev; use environment variables for production (`VITE_API_URL`)
 - Handle auth tokens: store in memory or `httpOnly` cookies (never `localStorage` for sensitive tokens)

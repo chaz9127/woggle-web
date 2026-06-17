@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from 'react';
 
 const AuthContext = createContext(null);
 
@@ -87,7 +93,19 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, setUsername, changePassword, updatePreferences, refresh }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        register,
+        logout,
+        setUsername,
+        changePassword,
+        updatePreferences,
+        refresh,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

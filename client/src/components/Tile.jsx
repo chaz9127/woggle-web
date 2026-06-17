@@ -1,6 +1,9 @@
 import { forwardRef } from 'react';
 
-const Tile = forwardRef(function Tile({ tile, selected, selectionIndex, last, onClick, style }, ref) {
+const Tile = forwardRef(function Tile(
+  { tile, selected, selectionIndex, last, onClick, style },
+  ref
+) {
   const classes = ['tile'];
   if (selected) classes.push('tile--selected');
   if (last) classes.push('tile--last');

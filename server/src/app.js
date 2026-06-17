@@ -6,11 +6,7 @@ const cors = require("cors");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
 const { handleWordLookup, handleWordSuggest } = require("./dictionary");
-const {
-  buildAuthRouter,
-  buildSessionMiddleware,
-  passport,
-} = require("./auth");
+const { buildAuthRouter, buildSessionMiddleware, passport } = require("./auth");
 const { buildGamesRouter } = require("./games");
 const { buildAdminRouter } = require("./admin");
 

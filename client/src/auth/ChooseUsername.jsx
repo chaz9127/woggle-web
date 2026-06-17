@@ -28,7 +28,9 @@ export default function ChooseUsername() {
       <main className="main">
         <div className="choose-username">
           <h2>Pick a username</h2>
-          <p>Signed in as <strong>{user?.email}</strong></p>
+          <p>
+            Signed in as <strong>{user?.email}</strong>
+          </p>
           <form onSubmit={submit} className="auth-form">
             <label className="auth-field">
               <span>Username</span>
