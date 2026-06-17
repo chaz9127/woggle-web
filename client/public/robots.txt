@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /choose-username
 
-Sitemap: https://woggle.xyz/sitemap.xml
+Sitemap: https://www.woggle.xyz/sitemap.xml
