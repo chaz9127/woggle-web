@@ -23,11 +23,11 @@ export const featureTooltips = {
     body: "You can now view the words that each player has submitted on the leaderboard after you've played a game.",
     show: ({ user, dismissed }) => !!user && !dismissed,
   },
-  leaderboardSignUp: {
-    name: 'leaderboardSignUp',
+  leaderboardSignUp2: {
+    name: 'leaderboardSignUp2',
     targetId: 'start-signup-button',
-    title: 'Sign up for the leaderboard!',
-    body: 'Sign up to be automatically added to the leaderboard and see how you rank against others!',
+    title: 'Join the leaderboard & more!',
+    body: 'Create an account to join the leaderboard and unlock game settings that make Woggle easier to play.',
     show: ({ user, dismissed }) => !user && !dismissed,
   },
 };

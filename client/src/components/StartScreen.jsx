@@ -130,7 +130,7 @@ export default function StartScreen({
               </button>
             )}
             <FeatureTooltip
-              config={featureTooltips.leaderboardSignUp}
+              config={featureTooltips.leaderboardSignUp2}
               context={{ user }}
             />
           </>

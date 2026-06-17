@@ -688,7 +688,7 @@
 /* New-feature tooltip */
 .feature-tooltip {
   position: fixed;
-  width: 240px;
+  width: 245px;
   padding: 12px 34px 12px 14px;
   background: var(--accent, #4a7);
   color: #fff;
