@@ -106,7 +106,7 @@ export default function Header({
           </button>
           {!menuOpen && (
             <FeatureTooltip
-              config={featureTooltips.editAccount}
+              config={featureTooltips.viewWordsOnLeaderboard}
               context={{ user }}
             />
           )}

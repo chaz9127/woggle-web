@@ -9,11 +9,18 @@
 //              `dismissed` is true once the user has closed it via the X.
 //              (The tooltip also only shows when its `targetId` element exists.)
 export const featureTooltips = {
-  editAccount: {
-    name: 'editAccount',
+  viewLeaderboard: {
+    name: 'viewLeaderboard',
     targetId: 'header-menu-button',
     title: 'New Feature!',
     body: 'You can now change your username or password from the menu.',
+    show: ({ user, dismissed }) => !!user && !dismissed,
+  },
+  viewWordsOnLeaderboard: {
+    name: 'viewWordsOnLeaderboard',
+    targetId: 'header-menu-button',
+    title: 'New Feature!',
+    body: "You can now view the words that each player has submitted on the leaderboard after you've played a game.",
     show: ({ user, dismissed }) => !!user && !dismissed,
   },
   leaderboardSignUp: {
