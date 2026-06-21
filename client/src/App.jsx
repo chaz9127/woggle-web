@@ -63,7 +63,10 @@ export default function App() {
     suggestInvalid,
     startGame,
     dismissSummary,
-  } = useGame({ clearAfterInvalid: !!user?.clearAfterInvalid, locked });
+  } = useGame({
+    clearAfterInvalid: user ? !!user.clearAfterInvalid : true,
+    locked,
+  });
 
   const [rulesOpen, setRulesOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
@@ -238,7 +241,9 @@ export default function App() {
               board={board}
               selection={selection}
               onSelect={selectTile}
-              onSwipeEnd={user?.submitAfterSwipe ? submitWord : undefined}
+              onSwipeEnd={
+                (user ? user.submitAfterSwipe : true) ? submitWord : undefined
+              }
               rotation={boardRotation}
             />
 

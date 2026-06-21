@@ -9,9 +9,9 @@ export default function WhySignUpModal({ open, onClose, onSignUp }) {
     >
       Why?
       <ul className="rules">
+        <li>Track your streak, best word, high score, and more over time.</li>
         <li>Automatic leaderboard entries.</li>
         <li>Tailor the game with settings that match how you play.</li>
-        <li>Track your streak, best word, high score, and more over time.</li>
       </ul>
       <div className="controls" style={{ marginTop: 12 }}>
         <button type="button" className="btn btn--ghost" onClick={onClose}>

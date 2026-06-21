@@ -50,11 +50,16 @@ const findById = db.prepare("SELECT * FROM users WHERE id = ?");
 const findByEmail = db.prepare("SELECT * FROM users WHERE email = ?");
 const findByUsername = db.prepare("SELECT * FROM users WHERE username = ?");
 const findByGoogleId = db.prepare("SELECT * FROM users WHERE google_id = ?");
+// New accounts opt into the gameplay conveniences by default. We set them
+// explicitly here (rather than via the column default) so existing users keep
+// whatever they've chosen, regardless of the DB's migration state.
 const insertLocalUser = db.prepare(
-  "INSERT INTO users (email, username, password_hash) VALUES (?, ?, ?)"
+  `INSERT INTO users (email, username, password_hash, clear_after_invalid, submit_after_swipe)
+   VALUES (?, ?, ?, 1, 1)`
 );
 const insertGoogleUser = db.prepare(
-  "INSERT INTO users (email, google_id) VALUES (?, ?)"
+  `INSERT INTO users (email, google_id, clear_after_invalid, submit_after_swipe)
+   VALUES (?, ?, 1, 1)`
 );
 const updateUsername = db.prepare("UPDATE users SET username = ? WHERE id = ?");
 const updatePasswordHash = db.prepare(

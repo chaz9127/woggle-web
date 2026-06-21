@@ -9,13 +9,6 @@
 //              `dismissed` is true once the user has closed it via the X.
 //              (The tooltip also only shows when its `targetId` element exists.)
 export const featureTooltips = {
-  viewLeaderboard: {
-    name: 'viewLeaderboard',
-    targetId: 'header-menu-button',
-    title: 'New Feature!',
-    body: 'You can now change your username or password from the menu.',
-    show: ({ user, dismissed }) => !!user && !dismissed,
-  },
   viewWordsOnLeaderboard: {
     name: 'viewWordsOnLeaderboard',
     targetId: 'header-menu-button',
@@ -27,7 +20,7 @@ export const featureTooltips = {
     name: 'leaderboardSignUp2',
     targetId: 'start-signup-button',
     title: 'Join the leaderboard & more!',
-    body: 'Create an account to join the leaderboard and unlock game settings that make Woggle easier to play.',
+    body: 'Create an account to join the leaderboard and save your progress.',
     show: ({ user, dismissed }) => !user && !dismissed,
   },
 };
