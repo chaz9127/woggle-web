@@ -1,9 +1,21 @@
 const express = require("express");
 const { db } = require("./db");
 const { requireAuth } = require("./auth");
+const {
+  insertBonus,
+  listBonuses,
+  findBonus,
+  deleteUnclaimedBonus,
+} = require("./bonuses");
 
 const ROLES = new Set(["user", "tester", "admin"]);
 const SUGGESTION_STATUSES = new Set(["pending", "denied", "approved"]);
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const MAX_BONUS_POINTS = 1000;
+
+const findUserByEmail = db.prepare(
+  "SELECT id, email, username FROM users WHERE email = ?"
+);
 
 const listUsers = db.prepare(`
   SELECT id, email, username, role, created_at
@@ -196,6 +208,64 @@ function buildAdminRouter() {
       deleteWord.run(word);
     }
     res.json({ suggestion: findSuggestion.get(word) });
+  });
+
+  router.get("/bonuses", (_req, res) => {
+    res.json({ bonuses: listBonuses.all() });
+  });
+
+  router.post("/bonuses", (req, res) => {
+    const email = String(req.body?.email || "")
+      .toLowerCase()
+      .trim();
+    const points = Number(req.body?.points);
+    const activeFrom = String(req.body?.activeFrom || "").trim();
+    const title = String(req.body?.title || "").trim();
+    const message = String(req.body?.message || "").trim();
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+    if (!Number.isInteger(points) || points < 1 || points > MAX_BONUS_POINTS) {
+      return res
+        .status(400)
+        .json({ error: `Points must be an integer 1-${MAX_BONUS_POINTS}` });
+    }
+    if (!DATE_RE.test(activeFrom)) {
+      return res
+        .status(400)
+        .json({ error: "activeFrom must be a YYYY-MM-DD date" });
+    }
+    if (!title || title.length > 80) {
+      return res.status(400).json({ error: "Title must be 1-80 chars" });
+    }
+    if (!message || message.length > 280) {
+      return res.status(400).json({ error: "Message must be 1-280 chars" });
+    }
+
+    const user = findUserByEmail.get(email);
+    if (!user) {
+      return res.status(404).json({ error: "No user with that email" });
+    }
+
+    const result = insertBonus.run(user.id, activeFrom, points, title, message);
+    res.status(201).json({ bonus: findBonus.get(result.lastInsertRowid) });
+  });
+
+  router.delete("/bonuses/:id", (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: "Invalid id" });
+    }
+    const existing = findBonus.get(id);
+    if (!existing) return res.status(404).json({ error: "Bonus not found" });
+    if (existing.claimed_at) {
+      return res
+        .status(409)
+        .json({ error: "Bonus already claimed; cannot revoke" });
+    }
+    deleteUnclaimedBonus.run(id);
+    res.json({ ok: true });
   });
 
   return router;

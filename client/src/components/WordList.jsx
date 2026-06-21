@@ -2,7 +2,7 @@ export default function WordList({ words }) {
   if (words.length === 0) {
     return (
       <div className="wordlist wordlist--empty">
-        <p>No words found yet — start tapping tiles!</p>
+        <p>No words found yet, start tapping tiles!</p>
       </div>
     );
   }

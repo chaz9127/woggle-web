@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import AdminHome from './AdminHome';
 import AdminUsers from './AdminUsers';
+import AdminBonuses from './AdminBonuses';
 import AdminWordSuggestions from './AdminWordSuggestions';
 import AdminVisualizations from './AdminVisualizations';
 import { usePageTitle } from '../hooks/usePageTitle';
@@ -30,6 +31,7 @@ export default function AdminPage() {
   const NAV = [
     { key: 'home', label: 'Home', render: () => <AdminHome /> },
     { key: 'users', label: 'Users', render: () => <AdminUsers /> },
+    { key: 'bonuses', label: 'Bonuses', render: () => <AdminBonuses /> },
     {
       key: 'word-suggestions',
       label: 'Word Suggestions',

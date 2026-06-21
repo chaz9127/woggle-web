@@ -6,6 +6,7 @@ import RulesModal from './components/RulesModal';
 import StatsModal from './components/StatsModal';
 import LeaderboardsPage from './components/LeaderboardsPage';
 import SummaryModal from './components/SummaryModal';
+import BonusDrawer from './components/BonusDrawer';
 import StartScreen from './components/StartScreen';
 import WhySignUpModal from './components/WhySignUpModal';
 import AuthModal from './auth/AuthModal';
@@ -72,6 +73,7 @@ export default function App() {
   const [whySignUpOpen, setWhySignUpOpen] = useState(false);
   const [whySignUpDismissed, setWhySignUpDismissed] = useState(false);
   const [boardRotation, setBoardRotation] = useState(0);
+  const [bonus, setBonus] = useState(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -106,7 +108,9 @@ export default function App() {
       setPlayedCookieActive(true);
     }
 
-    submitCompletion(dateStr, foundWords);
+    submitCompletion(dateStr, foundWords).then((data) => {
+      if (data?.bonus) setBonus(data.bonus);
+    });
   }, [phase, dateStr, foundWords, submitCompletion, overrideActive, user]);
 
   useEffect(() => {
@@ -305,7 +309,9 @@ export default function App() {
         board={board}
         dateStr={dateStr}
         theme={theme}
+        bonus={bonus}
       />
+      <BonusDrawer bonus={bonus} onClose={() => setBonus(null)} />
     </div>
   );
 }

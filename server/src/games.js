@@ -2,6 +2,7 @@ const express = require("express");
 const { db } = require("./db");
 const { requireAuth } = require("./auth");
 const { generateBoard, isFormable } = require("./board");
+const { findClaimableBonus, markBonusClaimed } = require("./bonuses");
 
 const LETTER_VALUE = {
   A: 1,
@@ -277,17 +278,37 @@ const completeGameTx = db.transaction(
     const existing = findGame.get(userId, gameDate);
     if (existing && existing.completed_at) {
       return {
-        total: stats.total_games || 0,
-        currentStreak: stats.current_streak || 0,
-        longestStreak: stats.longest_streak || 0,
-        alreadyPersisted: true,
+        score: existing.score,
+        bonus: null,
+        stats: {
+          total: stats.total_games || 0,
+          currentStreak: stats.current_streak || 0,
+          longestStreak: stats.longest_streak || 0,
+          alreadyPersisted: true,
+        },
+      };
+    }
+
+    // A claimable bonus is consumed by this completion: its points fold into the
+    // stored score (so leaderboards reflect them) and it's marked claimed inside
+    // the same transaction so a retry or concurrent finish can't redeem it twice.
+    const bonus = findClaimableBonus.get(userId, gameDate);
+    let bonusPayload = null;
+    let finalScore = score;
+    if (bonus) {
+      finalScore = score + bonus.points;
+      markBonusClaimed.run(gameDate, bonus.id);
+      bonusPayload = {
+        points: bonus.points,
+        title: bonus.title,
+        message: bonus.message,
       };
     }
 
     insertGame.run(
       userId,
       gameDate,
-      score,
+      finalScore,
       acceptedWords.length,
       highestWord,
       highestWordScore,
@@ -302,7 +323,11 @@ const completeGameTx = db.transaction(
     const newStreak = prevStreak + 1;
     const longest = Math.max(stats.longest_streak || 0, newStreak);
     updateUserStats.run(total, newStreak, longest, gameDate, userId);
-    return { total, currentStreak: newStreak, longestStreak: longest };
+    return {
+      score: finalScore,
+      bonus: bonusPayload,
+      stats: { total, currentStreak: newStreak, longestStreak: longest },
+    };
   }
 );
 
@@ -401,8 +426,9 @@ function buildGamesRouter() {
     );
 
     res.json({
-      game: { gameDate, score, wordCount: accepted.length },
-      stats: result,
+      game: { gameDate, score: result.score, wordCount: accepted.length },
+      stats: result.stats,
+      bonus: result.bonus,
     });
   });
 

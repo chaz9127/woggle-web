@@ -15,6 +15,7 @@ export default function SummaryModal({
   board,
   dateStr,
   theme,
+  bonus,
 }) {
   const [shareStatus, setShareStatus] = useState('');
   const [wordsStatus, setWordsStatus] = useState('');
@@ -45,9 +46,14 @@ export default function SummaryModal({
           </div>
           <div>
             <span>Score</span>
-            <strong>{totals.scrabble}</strong>
+            <strong>{totals.scrabble + (bonus?.points || 0)}</strong>
           </div>
         </div>
+        {bonus && (
+          <p className="summary__bonus">
+            🎉 {bonus.title} <strong>+{bonus.points}</strong>
+          </p>
+        )}
         <h3>Words</h3>
         {foundWords.length === 0 ? (
           <p className="summary__empty">No words this round.</p>
