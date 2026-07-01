@@ -502,12 +502,9 @@ function buildGamesRouter() {
 
   router.get("/leaderboard", (req, res) => {
     const requested = String(req.query?.date || "");
-    // Admins may view any historical date; everyone else is limited to the
-    // current local-date window (today/yesterday/tomorrow) to keep play fair.
-    const isAdmin = req.user?.role === "admin";
-    const allowed = isAdmin
-      ? DATE_RE.test(requested)
-      : isAcceptableLocalDate(requested);
+    // Anyone may view any historical date's leaderboard. Words for past games
+    // are already public; the live board's words stay gated below.
+    const allowed = DATE_RE.test(requested);
     const today = allowed ? requested : utcToday();
 
     // A player's words for a past game are visible to anyone. For the current

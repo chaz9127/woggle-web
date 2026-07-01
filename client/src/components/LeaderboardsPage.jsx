@@ -40,7 +40,6 @@ function WordsView({ words }) {
 
 export default function LeaderboardsPage() {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'admin';
   const today = todayDateString();
 
   const [data, setData] = useState(null);
@@ -106,8 +105,8 @@ export default function LeaderboardsPage() {
         </button>
       </div>
 
-      {isAdmin && tab === 'today' && (
-        <div className="leaderboards__admin-date">
+      {tab === 'today' && (
+        <div className="leaderboards__date">
           <input
             type="date"
             value={date}
