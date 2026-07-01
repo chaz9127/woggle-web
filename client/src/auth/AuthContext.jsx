@@ -48,6 +48,8 @@ export function AuthProvider({ children }) {
       body: JSON.stringify({ email, password }),
     });
     setUser(user);
+    // Reload so all views re-fetch against the newly signed-in session.
+    window.location.reload();
     return user;
   }, []);
 
@@ -57,12 +59,16 @@ export function AuthProvider({ children }) {
       body: JSON.stringify({ email, username, password }),
     });
     setUser(user);
+    // Reload so all views re-fetch against the newly signed-in session.
+    window.location.reload();
     return user;
   }, []);
 
   const logout = useCallback(async () => {
     await apiFetch('/api/auth/logout', { method: 'POST' });
     setUser(null);
+    // Reload so all views re-fetch against the signed-out session.
+    window.location.reload();
   }, []);
 
   const setUsername = useCallback(async (username) => {
