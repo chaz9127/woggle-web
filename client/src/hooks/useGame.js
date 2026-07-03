@@ -7,6 +7,7 @@ import {
   tilesToLetterCount,
 } from '../utils/scoring';
 import { loadResult, saveResult, clearResult } from '../utils/gameStorage';
+import { loadWordList, isWordCached } from '../utils/wordCache';
 import { checkWord, suggestWord } from './useDictionary';
 
 export const GAME_DURATION_SECONDS = 120;
@@ -16,6 +17,7 @@ export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
   const board = useMemo(() => generateBoard(dateStr), [dateStr]);
 
   const [phase, setPhase] = useState(() => (locked ? 'locked' : 'idle'));
+  const [countdown, setCountdown] = useState(null);
   const [selection, setSelection] = useState([]);
   const [foundWords, setFoundWords] = useState(() =>
     locked ? (loadResult(dateStr) ?? []) : []
@@ -27,6 +29,18 @@ export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
   const [submitting, setSubmitting] = useState(false);
   const [startTime, setStartTime] = useState(null);
   const [remaining, setRemaining] = useState(GAME_DURATION_SECONDS);
+
+  // 3-2-1 pre-game countdown: tick once per second, then start play.
+  useEffect(() => {
+    if (phase !== 'countdown') return;
+    if (countdown <= 0) {
+      setStartTime(Date.now());
+      setPhase('playing');
+      return;
+    }
+    const id = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(id);
+  }, [phase, countdown]);
 
   useEffect(() => {
     if (phase !== 'playing' || startTime == null) return;
@@ -122,9 +136,13 @@ export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
       if (clearAfterInvalid) setSelection([]);
       return;
     }
-    setSubmitting(true);
-    const ok = await checkWord(word);
-    setSubmitting(false);
+    // Prefer the locally-cached word list; only hit the backend on a miss.
+    let ok = isWordCached(word);
+    if (!ok) {
+      setSubmitting(true);
+      ok = await checkWord(word);
+      setSubmitting(false);
+    }
     if (!ok) {
       setError('Not a valid word');
       setInvalidWord(word);
@@ -160,14 +178,17 @@ export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
   );
 
   const startGame = useCallback(() => {
+    // Kick off the word-list download so it overlaps the 3s countdown.
+    loadWordList();
     setSelection([]);
     setFoundWords([]);
     setError('');
     setInvalidWord('');
     setSuggested(false);
     setRemaining(GAME_DURATION_SECONDS);
-    setStartTime(Date.now());
-    setPhase('playing');
+    setStartTime(null);
+    setCountdown(3);
+    setPhase('countdown');
   }, []);
 
   const dismissSummary = useCallback(() => {
@@ -178,6 +199,7 @@ export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
     dateStr,
     board,
     phase,
+    countdown,
     selection,
     foundWords,
     error,

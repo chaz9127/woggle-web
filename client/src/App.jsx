@@ -48,6 +48,7 @@ export default function App() {
     dateStr,
     board,
     phase,
+    countdown,
     selection,
     foundWords,
     error,
@@ -172,6 +173,13 @@ export default function App() {
       <main className="main">
         {isLeaderboards ? (
           <LeaderboardsPage />
+        ) : phase === 'countdown' ? (
+          <div className="countdown">
+            <span className="countdown__label">Get ready…</span>
+            <span className="countdown__number" key={countdown}>
+              {countdown}
+            </span>
+          </div>
         ) : phase === 'idle' || phase === 'locked' ? (
           <StartScreen
             dateStr={dateStr}

@@ -5,7 +5,11 @@ const helmet = require("helmet");
 const cors = require("cors");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
-const { handleWordLookup, handleWordSuggest } = require("./dictionary");
+const {
+  handleWordLookup,
+  handleWordList,
+  handleWordSuggest,
+} = require("./dictionary");
 const { buildAuthRouter, buildSessionMiddleware, passport } = require("./auth");
 const { buildGamesRouter } = require("./games");
 const { buildAdminRouter } = require("./admin");
@@ -45,6 +49,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", buildAuthRouter());
 app.use("/api/games", buildGamesRouter());
 app.use("/api/admin", buildAdminRouter());
+app.get("/api/words", lookupLimiter, handleWordList);
 app.get("/api/word/:word", lookupLimiter, handleWordLookup);
 app.post("/api/word/:word/suggest", suggestLimiter, handleWordSuggest);
 

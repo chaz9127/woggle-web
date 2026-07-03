@@ -90,6 +90,7 @@ db.exec(`
 `);
 
 const selectStmt = db.prepare("SELECT 1 FROM words WHERE word = ?");
+const allWordsStmt = db.prepare("SELECT word FROM words ORDER BY word");
 const insertStmt = db.prepare("INSERT OR IGNORE INTO words(word) VALUES (?)");
 const insertSuggestionStmt = db.prepare(
   "INSERT OR IGNORE INTO word_suggestions(word, user_id) VALUES (?, ?)"
@@ -139,6 +140,13 @@ async function handleWordLookup(req, res) {
   return res.status(503).end();
 }
 
+// Returns every known-valid word as a JSON array so the client can answer most
+// lookups locally instead of round-tripping per word.
+function handleWordList(req, res) {
+  const words = allWordsStmt.all().map((r) => r.word);
+  res.json(words);
+}
+
 function handleWordSuggest(req, res) {
   const word = (req.params.word || "").toLowerCase();
   if (!word || !/^[a-z]{1,16}$/.test(word)) {
@@ -149,4 +157,4 @@ function handleWordSuggest(req, res) {
   res.status(204).end();
 }
 
-module.exports = { handleWordLookup, handleWordSuggest };
+module.exports = { handleWordLookup, handleWordList, handleWordSuggest };
