@@ -60,7 +60,7 @@ export default function AdminHome() {
           value={(stats.gamesToday ?? 0).toLocaleString()}
         />
         <StatCard
-          label="Words in dictionary"
+          label="Unique words found"
           value={stats.totalWords.toLocaleString()}
         />
         <StatCard

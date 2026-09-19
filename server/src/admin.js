@@ -50,7 +50,14 @@ const deleteWord = db.prepare("DELETE FROM words WHERE word = ?");
 const statsTotalGames = db.prepare(
   "SELECT COUNT(*) AS n FROM user_games WHERE completed_at IS NOT NULL"
 );
-const statsTotalWords = db.prepare("SELECT COUNT(*) AS n FROM words");
+const statsTotalWords = db.prepare(`
+  SELECT COUNT(DISTINCT
+    CASE WHEN je.type = 'object' THEN LOWER(je.value ->> '$.word')
+         ELSE LOWER(je.value) END
+  ) AS n
+  FROM user_games g, json_each(g.found_words) je
+  WHERE g.completed_at IS NOT NULL
+`);
 const statsGamesToday = db.prepare(
   "SELECT COUNT(*) AS n FROM user_games WHERE completed_at IS NOT NULL AND game_date = ?"
 );
