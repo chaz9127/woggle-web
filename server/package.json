@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon src/app.js",
     "start": "node src/app.js",
-    "db": "node scripts/db-shell.js"
+    "db": "node scripts/db-shell.js",
+    "seed:words": "node scripts/seed-words.js"
   },
   "keywords": [],
   "author": "",

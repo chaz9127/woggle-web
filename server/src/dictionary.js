@@ -126,7 +126,10 @@ async function handleWordLookup(req, res) {
   let status;
   try {
     status = await fetchUpstream(word);
-  } catch {
+  } catch (err) {
+    console.error(
+      `[dictionary] upstream lookup failed for "${word}": ${err.name} - ${err.message}`
+    );
     return res.status(503).end();
   }
 
@@ -137,6 +140,7 @@ async function handleWordLookup(req, res) {
   if (status === 404) {
     return res.status(404).end();
   }
+  console.error(`[dictionary] upstream returned unexpected status ${status} for "${word}"`);
   return res.status(503).end();
 }
 
