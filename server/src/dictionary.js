@@ -91,28 +91,11 @@ db.exec(`
 
 const selectStmt = db.prepare("SELECT 1 FROM words WHERE word = ?");
 const allWordsStmt = db.prepare("SELECT word FROM words ORDER BY word");
-const insertStmt = db.prepare("INSERT OR IGNORE INTO words(word) VALUES (?)");
 const insertSuggestionStmt = db.prepare(
   "INSERT OR IGNORE INTO word_suggestions(word, user_id) VALUES (?, ?)"
 );
 
-const UPSTREAM = "https://api.dictionaryapi.dev/api/v2/entries/en/";
-const TIMEOUT_MS = 4000;
-
-async function fetchUpstream(word) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  try {
-    const res = await fetch(UPSTREAM + encodeURIComponent(word), {
-      signal: controller.signal,
-    });
-    return res.status;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-async function handleWordLookup(req, res) {
+function handleWordLookup(req, res) {
   const raw = req.params.word || "";
   const word = raw.toLowerCase();
   if (!word || !/^[a-z]{1,16}$/.test(word)) {
@@ -122,26 +105,7 @@ async function handleWordLookup(req, res) {
   if (selectStmt.get(word)) {
     return res.status(200).end();
   }
-
-  let status;
-  try {
-    status = await fetchUpstream(word);
-  } catch (err) {
-    console.error(
-      `[dictionary] upstream lookup failed for "${word}": ${err.name} - ${err.message}`
-    );
-    return res.status(503).end();
-  }
-
-  if (status === 200) {
-    insertStmt.run(word);
-    return res.status(200).end();
-  }
-  if (status === 404) {
-    return res.status(404).end();
-  }
-  console.error(`[dictionary] upstream returned unexpected status ${status} for "${word}"`);
-  return res.status(503).end();
+  return res.status(404).end();
 }
 
 // Returns every known-valid word as a JSON array so the client can answer most
