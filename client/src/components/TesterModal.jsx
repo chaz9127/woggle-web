@@ -25,8 +25,9 @@ export default function TesterModal({ open }) {
     >
       <p>
         New "Possible Word Count" feature is live only for you guys to test it
-        out (funny how that works). Please let me know what you think and let me
-        know if anything breaks!
+        out (funny how that works).
+        <br />
+        Please let me know what you think and let me know if anything breaks!
       </p>
       <ol className="rules">
         <li>
