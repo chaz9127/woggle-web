@@ -24,7 +24,6 @@ export default function TesterModal({ open }) {
       onClose={handleClose}
     >
       <ol className="rules">
-        <li>This is only for testers.</li>
         <li>
           We have a possible word count now at the top. Make sure it shows!
           <img
