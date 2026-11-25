@@ -23,6 +23,11 @@ export default function TesterModal({ open }) {
       title="Hey Tester! I need your help!"
       onClose={handleClose}
     >
+      <p>
+        New "Possible Word Count" feature is live only for you guys to test it
+        out (funny how that works). Please let me know what you think and let me
+        know if anything breaks!
+      </p>
       <ol className="rules">
         <li>
           We have a possible word count now at the top. Make sure it shows!
@@ -41,7 +46,6 @@ export default function TesterModal({ open }) {
           />
         </li>
       </ol>
-      <p>So please let me know if you love or hate it!</p>
       <div className="controls">
         <button
           type="button"
