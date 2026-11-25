@@ -83,6 +83,14 @@ npm run dev
 
 Open the URL Vite prints (normally <http://localhost:5173>). The API runs on port 3001.
 
+## Optional: create test users
+
+```sh
+npm run seed:users --workspace=server
+```
+
+This creates `test1` to `test5` with emails `test1@test.com` to `test5@test.com`, all with the password `testtest1`. Users that already exist are skipped.
+
 ## Optional: make yourself an admin
 
 Roles are `user`, `tester` and `admin`. Sign up in the app, then run this at the `db>` prompt:
