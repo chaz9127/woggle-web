@@ -303,7 +303,7 @@ export default function App() {
       <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
       <TesterModal
         open={
-          user?.role === 'tester' &&
+          (import.meta.env.DEV || user?.role === 'tester') &&
           !isLeaderboards &&
           !authOpen &&
           (phase === 'idle' || phase === 'locked')

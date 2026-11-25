@@ -8,8 +8,9 @@ import missedWordsImg from '../assets/tester-missed-words.png';
 const DISMISS_KEY = 'testerPossibleWords';
 
 export default function TesterModal({ open }) {
-  const [dismissed, setDismissed] = useState(() =>
-    isTooltipDismissed(DISMISS_KEY)
+  // Locally, ignore past dismissals so the modal shows on every page load.
+  const [dismissed, setDismissed] = useState(
+    () => !import.meta.env.DEV && isTooltipDismissed(DISMISS_KEY)
   );
 
   const handleClose = () => {
@@ -24,14 +25,16 @@ export default function TesterModal({ open }) {
       onClose={handleClose}
     >
       <p>
-        New "Possible Word Count" feature is live only for you guys to test it
-        out (funny how that works).
+        <strong>New "Possible Word Count" Feature</strong>
         <br />
-        Please let me know what you think and let me know if anything breaks!
+        <br />
+        Now live only for you guys to test it out 👍
+        <br />
+        (funny how that works)
       </p>
       <ol className="rules">
         <li>
-          We have a possible word count now at the top. Make sure it shows!
+          We have a possible word count now at the top when playing a game.
           <img
             className="tester-modal__image"
             src={wordCountImg}
@@ -47,6 +50,10 @@ export default function TesterModal({ open }) {
           />
         </li>
       </ol>
+      <p>
+        <br />
+        Please let me know what you think and let me know if anything breaks!
+      </p>
       <div className="controls">
         <button
           type="button"
