@@ -195,6 +195,10 @@ const highestGameScoreStmt = db.prepare(`
   SELECT MAX(score) AS best FROM user_games
   WHERE user_id = ? AND completed_at IS NOT NULL
 `);
+const mostWordsStmt = db.prepare(`
+  SELECT MAX(word_count) AS best FROM user_games
+  WHERE user_id = ? AND completed_at IS NOT NULL
+`);
 const highestWordStmt = db.prepare(`
   SELECT highest_word AS word, highest_word_score AS score
   FROM user_games
@@ -461,6 +465,7 @@ function buildGamesRouter() {
     const today = isAcceptableLocalDate(requested) ? requested : utcToday();
     const todayGame = findGame.get(req.user.id, today);
     const highestGameScore = highestGameScoreStmt.get(req.user.id)?.best || 0;
+    const mostWords = mostWordsStmt.get(req.user.id)?.best || 0;
     const highest = highestWordStmt.get(req.user.id);
 
     let todayFoundWords = [];
@@ -500,6 +505,7 @@ function buildGamesRouter() {
         longestStreak: stats.longest_streak,
         lastCompletedDate: stats.last_completed_date,
         highestGameScore,
+        mostWords,
         highestWord: highest?.word || null,
         highestWordScore: highest?.score || 0,
       },

@@ -37,12 +37,12 @@ export default function StatsModal({ open, onClose }) {
       ) : (
         <div className="stats">
           <div className="stats__cell">
-            <span>Total games</span>
-            <strong>{stats.totalGames}</strong>
-          </div>
-          <div className="stats__cell">
             <span>Highest score</span>
             <strong>{stats.highestGameScore}</strong>
+          </div>
+          <div className="stats__cell">
+            <span>Most words</span>
+            <strong>{stats.mostWords ?? 0}</strong>
           </div>
           <div className="stats__cell">
             <span>Current streak</span>
@@ -51,6 +51,10 @@ export default function StatsModal({ open, onClose }) {
           <div className="stats__cell">
             <span>Longest streak</span>
             <strong>{stats.longestStreak}</strong>
+          </div>
+          <div className="stats__cell stats__cell--wide">
+            <span>Total games</span>
+            <strong>{stats.totalGames}</strong>
           </div>
           <div className="stats__cell stats__cell--wide">
             <span>Best word</span>
