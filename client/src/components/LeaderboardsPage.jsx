@@ -44,6 +44,7 @@ export default function LeaderboardsPage() {
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [metric, setMetric] = useState('score');
   const [tab, setTab] = useState('today');
   const [date, setDate] = useState(today);
   const [wordsModal, setWordsModal] = useState(null);
@@ -74,7 +75,14 @@ export default function LeaderboardsPage() {
 
   const viewingToday = date === today;
 
-  const rows = !data ? [] : tab === 'today' ? data.today : data.allTime;
+  const showsGameDate = tab === 'all-time';
+  const rows = !data
+    ? []
+    : metric === 'words'
+      ? ((tab === 'today' ? data.mostWordsToday : data.mostWordsAllTime) ?? [])
+      : tab === 'today'
+        ? data.today
+        : data.allTime;
 
   return (
     <div className="leaderboards">
@@ -82,6 +90,23 @@ export default function LeaderboardsPage() {
       <p className="leaderboards__disclaimer">
         You must create an account to be included on the leaderboards.
       </p>
+
+      <div className="leaderboards__metric" role="group" aria-label="Rank by">
+        {[
+          ['score', 'Highest Score'],
+          ['words', 'Most Words'],
+        ].map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={metric === value}
+            className={`leaderboards__metric-btn ${metric === value ? 'leaderboards__metric-btn--active' : ''}`}
+            onClick={() => setMetric(value)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
       <div className="leaderboards__tabs" role="tablist">
         <button
@@ -139,8 +164,7 @@ export default function LeaderboardsPage() {
         ) : (
           <ol className="leaderboard__list">
             {rows.map((row, i) => {
-              const rowDate =
-                tab === 'all-time' ? row.gameDate : data.todayDate;
+              const rowDate = showsGameDate ? row.gameDate : data.todayDate;
               const gated = row.words == null;
               const reason = !user
                 ? 'Sign in and finish today’s game to view words'
@@ -149,10 +173,19 @@ export default function LeaderboardsPage() {
                 <li key={i} className="leaderboard__row">
                   <span className="leaderboard__rank">{i + 1}</span>
                   <span className="leaderboard__name">{row.username}</span>
-                  {tab === 'all-time' && (
+                  {showsGameDate && (
                     <span className="leaderboard__date">{row.gameDate}</span>
                   )}
-                  <span className="leaderboard__score">{row.score}</span>
+                  {metric === 'words' ? (
+                    <span
+                      className="leaderboard__score"
+                      title={`${row.wordCount} words`}
+                    >
+                      {row.wordCount}
+                    </span>
+                  ) : (
+                    <span className="leaderboard__score">{row.score}</span>
+                  )}
                   <span className="leaderboard__words-tip-wrap">
                     <button
                       type="button"

@@ -220,6 +220,22 @@ const leaderboardAllTime = db.prepare(`
   ORDER BY g.score DESC, g.completed_at ASC
   LIMIT 10
 `);
+const leaderboardMostWordsAllTime = db.prepare(`
+  SELECT u.username, g.word_count, g.game_date, g.found_words
+  FROM user_games g
+  JOIN users u ON u.id = g.user_id
+  WHERE g.completed_at IS NOT NULL AND g.user_id IS NOT NULL
+  ORDER BY g.word_count DESC, g.completed_at ASC
+  LIMIT 10
+`);
+const leaderboardMostWordsToday = db.prepare(`
+  SELECT u.username, g.word_count, g.found_words
+  FROM user_games g
+  JOIN users u ON u.id = g.user_id
+  WHERE g.completed_at IS NOT NULL AND g.user_id IS NOT NULL AND g.game_date = ?
+  ORDER BY g.word_count DESC, g.completed_at ASC
+  LIMIT 10
+`);
 const leaderboardToday = db.prepare(`
   SELECT u.username, g.score, g.found_words
   FROM user_games g
@@ -527,9 +543,20 @@ function buildGamesRouter() {
         gameDate: g.game_date,
         words: wordsFor(g.game_date, g.found_words),
       })),
+      mostWordsAllTime: leaderboardMostWordsAllTime.all().map((g) => ({
+        username: g.username,
+        wordCount: g.word_count,
+        gameDate: g.game_date,
+        words: wordsFor(g.game_date, g.found_words),
+      })),
       today: leaderboardToday.all(today).map((g) => ({
         username: g.username,
         score: g.score,
+        words: wordsFor(today, g.found_words),
+      })),
+      mostWordsToday: leaderboardMostWordsToday.all(today).map((g) => ({
+        username: g.username,
+        wordCount: g.word_count,
         words: wordsFor(today, g.found_words),
       })),
       todayDate: today,
