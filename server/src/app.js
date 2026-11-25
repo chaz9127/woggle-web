@@ -11,7 +11,7 @@ const {
   handleWordSuggest,
 } = require("./dictionary");
 const { buildAuthRouter, buildSessionMiddleware, passport } = require("./auth");
-const { buildGamesRouter } = require("./games");
+const { buildGamesRouter, startBoardStatsScheduler } = require("./games");
 const { buildAdminRouter } = require("./admin");
 
 const lookupLimiter = rateLimit({
@@ -69,4 +69,5 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  startBoardStatsScheduler();
 });

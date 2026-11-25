@@ -7,6 +7,7 @@ import {
 import { useAuth } from '../auth/AuthContext';
 import FeatureTooltip from './FeatureTooltip';
 import { featureTooltips } from '../config/featureTooltips';
+import { isPrivilegedUser } from '../utils/roles';
 
 export default function StartScreen({
   dateStr,
@@ -25,7 +26,7 @@ export default function StartScreen({
   const [shareStatus, setShareStatus] = useState('');
   const [wordsStatus, setWordsStatus] = useState('');
   const { user } = useAuth();
-  const isPrivileged = user?.role === 'admin' || user?.role === 'tester';
+  const isPrivileged = isPrivilegedUser(user);
 
   const sharePreview =
     locked && board

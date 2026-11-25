@@ -10,9 +10,13 @@ import { loadResult, saveResult, clearResult } from '../utils/gameStorage';
 import { loadWordList, isWordCached } from '../utils/wordCache';
 import { checkWord, suggestWord } from './useDictionary';
 
-export const GAME_DURATION_SECONDS = 120;
+export const GAME_DURATION_SECONDS = import.meta.env.DEV ? 30 : 120;
 
-export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
+export function useGame({
+  clearAfterInvalid = false,
+  locked = false,
+  showPossibleWords = false,
+} = {}) {
   const dateStr = useMemo(() => todayDateString(), []);
   const board = useMemo(() => generateBoard(dateStr), [dateStr]);
 
@@ -29,6 +33,24 @@ export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
   const [submitting, setSubmitting] = useState(false);
   const [startTime, setStartTime] = useState(null);
   const [remaining, setRemaining] = useState(GAME_DURATION_SECONDS);
+  const [possibleWords, setPossibleWords] = useState(null);
+
+  useEffect(() => {
+    if (!showPossibleWords) return;
+    let cancelled = false;
+    fetch(`/api/games/board-stats?date=${dateStr}`, { credentials: 'include' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && typeof data?.possibleWords === 'number') {
+          setPossibleWords(data.possibleWords);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+      setPossibleWords(null);
+    };
+  }, [dateStr, showPossibleWords]);
 
   // 3-2-1 pre-game countdown: tick once per second, then start play.
   useEffect(() => {
@@ -209,6 +231,7 @@ export function useGame({ clearAfterInvalid = false, locked = false } = {}) {
     submitting,
     remaining,
     totals,
+    possibleWords,
     selectTile,
     clearSelection,
     submitWord,

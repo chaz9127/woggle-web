@@ -1,8 +1,9 @@
 const express = require("express");
 const { db } = require("./db");
-const { requireAuth } = require("./auth");
+const { requireAuth, requireTester } = require("./auth");
 const { generateBoard, isFormable } = require("./board");
 const { findClaimableBonus, markBonusClaimed } = require("./bonuses");
+const { ensureBoardStats, getBoardStats } = require("./boardSolver");
 
 const LETTER_VALUE = {
   A: 1,
@@ -536,7 +537,58 @@ function buildGamesRouter() {
     });
   });
 
+  // Admin/tester only for now. The date window stays even if this opens up:
+  // each new date costs a full board solve.
+  router.get("/board-stats", requireAuth, requireTester, (req, res) => {
+    const gameDate = String(req.query?.date || "");
+    if (!isAcceptableLocalDate(gameDate)) {
+      return res.status(400).json({ error: "Invalid date" });
+    }
+    const board = generateBoard(gameDate);
+    const { possibleWords } = getBoardStats(gameDate, board);
+    res.json({ gameDate, possibleWords });
+  });
+
+  // The full answer list, so it stays locked until the player has finished.
+  router.get("/possible-words", requireAuth, requireTester, (req, res) => {
+    const gameDate = String(req.query?.date || "");
+    if (!isAcceptableLocalDate(gameDate)) {
+      return res.status(400).json({ error: "Invalid date" });
+    }
+    if (!findGame.get(req.user.id, gameDate)?.completed_at) {
+      return res.status(403).json({ error: "Game not completed" });
+    }
+    const { words } = getBoardStats(gameDate, generateBoard(gameDate));
+    res.json({
+      gameDate,
+      words: words.map((word) => ({ word, scrabble: scoreWord(word) })),
+    });
+  });
+
   return router;
 }
 
-module.exports = { buildGamesRouter };
+const BOARD_STATS_INTERVAL_MS = 60 * 60 * 1000;
+
+// Keeps board_stats seeded a day ahead so requests rarely wait on a board
+// solve — the hourly re-check is a cheap no-op except right after a new
+// calendar date first appears. Failures are logged, never fatal.
+function startBoardStatsScheduler() {
+  const seedTodayAndTomorrow = () => {
+    try {
+      const today = utcToday();
+      ensureBoardStats(
+        [today, tomorrowOf(today)].map((gameDate) => ({
+          gameDate,
+          board: generateBoard(gameDate),
+        }))
+      );
+    } catch (err) {
+      console.error("Failed to seed board stats:", err);
+    }
+  };
+  seedTodayAndTomorrow();
+  setInterval(seedTodayAndTomorrow, BOARD_STATS_INTERVAL_MS);
+}
+
+module.exports = { buildGamesRouter, startBoardStatsScheduler };

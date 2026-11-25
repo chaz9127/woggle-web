@@ -8,6 +8,7 @@ import LeaderboardsPage from './components/LeaderboardsPage';
 import SummaryModal from './components/SummaryModal';
 import BonusDrawer from './components/BonusDrawer';
 import StartScreen from './components/StartScreen';
+import TesterModal from './components/TesterModal';
 import WhySignUpModal from './components/WhySignUpModal';
 import AuthModal from './auth/AuthModal';
 import AccountModal from './auth/AccountModal';
@@ -15,6 +16,7 @@ import ChooseUsername from './auth/ChooseUsername';
 import AdminPage from './admin/AdminPage';
 import NotFound from './components/NotFound';
 import { useAuth } from './auth/AuthContext';
+import { isPrivilegedUser } from './utils/roles';
 import { useGame } from './hooks/useGame';
 import { useGameStats } from './hooks/useGameStats';
 import { useTheme } from './hooks/useTheme';
@@ -58,6 +60,7 @@ export default function App() {
     submitting,
     remaining,
     totals,
+    possibleWords,
     selectTile,
     clearSelection,
     submitWord,
@@ -65,6 +68,7 @@ export default function App() {
     startGame,
     dismissSummary,
   } = useGame({
+    showPossibleWords: isPrivilegedUser(user),
     clearAfterInvalid: user ? !!user.clearAfterInvalid : true,
     locked,
   });
@@ -239,7 +243,10 @@ export default function App() {
                   </div>
                   <div>
                     <span>Words</span>
-                    <strong>{foundWords.length}</strong>
+                    <strong>
+                      {foundWords.length}
+                      {possibleWords != null && ` / ${possibleWords}`}
+                    </strong>
                   </div>
                 </>
               )}
@@ -294,6 +301,14 @@ export default function App() {
       </main>
 
       <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
+      <TesterModal
+        open={
+          user?.role === 'tester' &&
+          !isLeaderboards &&
+          !authOpen &&
+          (phase === 'idle' || phase === 'locked')
+        }
+      />
       <WhySignUpModal
         open={whySignUpOpen}
         onClose={() => {
@@ -323,6 +338,8 @@ export default function App() {
         dateStr={dateStr}
         theme={theme}
         bonus={bonus}
+        possibleWords={possibleWords}
+        showMissedWords={isPrivilegedUser(user) && playedToday}
       />
       <BonusDrawer bonus={bonus} onClose={() => setBonus(null)} />
     </div>

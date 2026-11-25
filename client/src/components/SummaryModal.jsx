@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Modal from './Modal';
+import MissedWords from './MissedWords';
 import {
   buildShareText,
   buildWordsText,
@@ -16,6 +17,8 @@ export default function SummaryModal({
   dateStr,
   theme,
   bonus,
+  possibleWords,
+  showMissedWords,
 }) {
   const [shareStatus, setShareStatus] = useState('');
   const [wordsStatus, setWordsStatus] = useState('');
@@ -42,7 +45,10 @@ export default function SummaryModal({
         <div className="summary__stats">
           <div>
             <span>Words</span>
-            <strong>{foundWords.length}</strong>
+            <strong>
+              {foundWords.length}
+              {possibleWords != null && ` / ${possibleWords}`}
+            </strong>
           </div>
           <div>
             <span>Score</span>
@@ -68,6 +74,9 @@ export default function SummaryModal({
                 </li>
               ))}
           </ul>
+        )}
+        {open && showMissedWords && (
+          <MissedWords dateStr={dateStr} foundWords={foundWords} />
         )}
         <button
           type="button"
