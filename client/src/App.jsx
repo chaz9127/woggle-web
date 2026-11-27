@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Header from './components/Header';
-import Board from './components/Board';
-import WordList from './components/WordList';
+import GamePlay from './components/GamePlay';
 import RulesModal from './components/RulesModal';
 import StatsModal from './components/StatsModal';
 import LeaderboardsPage from './components/LeaderboardsPage';
@@ -20,7 +19,6 @@ import { useAuth } from './auth/AuthContext';
 import { useGame } from './hooks/useGame';
 import { useGameStats } from './hooks/useGameStats';
 import { useTheme } from './hooks/useTheme';
-import { tilesToWord } from './utils/scoring';
 import { todayDateString } from './utils/random';
 import { setUserType } from './utils/analytics';
 import {
@@ -46,31 +44,22 @@ export default function App() {
   );
   const locked = !overrideActive && (user ? playedToday : playedCookieActive);
 
+  const game = useGame({
+    clearAfterInvalid: user ? !!user.clearAfterInvalid : true,
+    locked,
+  });
   const {
     dateStr,
     board,
     phase,
     countdown,
-    selection,
     foundWords,
-    error,
-    invalidWord,
-    suggested,
-    successPoints,
-    submitting,
     remaining,
     totals,
     possibleWords,
-    selectTile,
-    clearSelection,
-    submitWord,
-    suggestInvalid,
     startGame,
     dismissSummary,
-  } = useGame({
-    clearAfterInvalid: user ? !!user.clearAfterInvalid : true,
-    locked,
-  });
+  } = game;
 
   const [rulesOpen, setRulesOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
@@ -79,7 +68,6 @@ export default function App() {
   const [accountOpen, setAccountOpen] = useState(false);
   const [whySignUpOpen, setWhySignUpOpen] = useState(false);
   const [whySignUpDismissed, setWhySignUpDismissed] = useState(false);
-  const [boardRotation, setBoardRotation] = useState(0);
   const [bonus, setBonus] = useState(null);
 
   useEffect(() => {
@@ -97,7 +85,6 @@ export default function App() {
     setUserType(!!user);
   }, [authLoading, user]);
 
-  const currentWord = tilesToWord(selection);
   const showTimer = phase === 'playing' || phase === 'done';
 
   const submittedRef = useRef(null);
@@ -119,24 +106,6 @@ export default function App() {
       if (data?.bonus) setBonus(data.bonus);
     });
   }, [phase, dateStr, foundWords, submitCompletion, overrideActive, user]);
-
-  useEffect(() => {
-    if (phase !== 'playing') return;
-    const onKey = (e) => {
-      if (e.key !== 'Enter') return;
-      const target = e.target;
-      const tag = target?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-      const isTile = target?.closest?.('.tile');
-      if (tag === 'BUTTON' && !isTile) return;
-      if (submitting || selection.length === 0) return;
-      e.preventDefault();
-      if (isTile && typeof target.blur === 'function') target.blur();
-      submitWord();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [phase, submitting, selection.length, submitWord]);
 
   if (!authLoading && user && !user.username) {
     return <ChooseUsername />;
@@ -208,98 +177,10 @@ export default function App() {
             stats={stats}
           />
         ) : (
-          <>
-            <div
-              className={`scoreboard ${error ? 'scoreboard--error' : ''} ${successPoints != null ? 'scoreboard--success' : ''}`}
-            >
-              {successPoints != null ? (
-                <div className="scoreboard__alert">
-                  <span>
-                    {successPoints} {successPoints === 1 ? 'point' : 'points'}!
-                  </span>
-                </div>
-              ) : error ? (
-                <div className="scoreboard__alert">
-                  <span>{error}</span>
-                  {invalidWord &&
-                    (suggested ? (
-                      <span className="current-word__suggested">
-                        Suggested!
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        className="btn btn--ghost btn--inline"
-                        onClick={suggestInvalid}
-                      >
-                        Suggest?
-                      </button>
-                    ))}
-                </div>
-              ) : currentWord ? (
-                <div className="scoreboard__current">{currentWord}</div>
-              ) : (
-                <>
-                  <div>
-                    <span>Score</span>
-                    <strong>{totals.scrabble}</strong>
-                  </div>
-                  <div>
-                    <span>Words</span>
-                    <strong>
-                      {foundWords.length}
-                      {possibleWords != null && ` / ${possibleWords}`}
-                    </strong>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <Board
-              board={board}
-              selection={selection}
-              onSelect={selectTile}
-              onSwipeEnd={
-                (user ? user.submitAfterSwipe : true) ? submitWord : undefined
-              }
-              rotation={boardRotation}
-            />
-
-            <div className="controls">
-              <button
-                type="button"
-                className="btn btn--ghost"
-                onClick={clearSelection}
-                disabled={
-                  selection.length === 0 || submitting || phase !== 'playing'
-                }
-              >
-                Clear
-              </button>
-              <button
-                type="button"
-                className="btn btn--ghost"
-                onClick={() => setBoardRotation((r) => (r + 1) % 4)}
-                disabled={phase !== 'playing'}
-                aria-label="Rotate board"
-                title="Rotate board"
-              >
-                ↻
-              </button>
-              <button
-                type="button"
-                className="btn btn--primary"
-                onClick={submitWord}
-                disabled={
-                  selection.length === 0 || submitting || phase !== 'playing'
-                }
-              >
-                {submitting ? 'Checking…' : 'Submit'}
-              </button>
-            </div>
-
-            <WordList words={foundWords} />
-          </>
+          <GamePlay
+            game={game}
+            submitAfterSwipe={user ? user.submitAfterSwipe : true}
+          />
         )}
       </main>
 

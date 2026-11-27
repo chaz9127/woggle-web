@@ -12,29 +12,48 @@ import { checkWord, suggestWord } from './useDictionary';
 
 export const GAME_DURATION_SECONDS = import.meta.env.DEV ? 30 : 120;
 
+// With no `challenge` option this is the daily game, unchanged. A challenge
+// run passes { seed, startTime, storageKey }: the board comes from the
+// challenge seed, play begins immediately at the server-recorded start time
+// (so a refresh resumes the same run instead of restarting it), and found
+// words are saved under storageKey as they're found.
 export function useGame({
   clearAfterInvalid = false,
   locked = false,
+  challenge = null,
 } = {}) {
   const dateStr = useMemo(() => todayDateString(), []);
-  const board = useMemo(() => generateBoard(dateStr), [dateStr]);
+  const boardSeed = challenge?.seed ?? dateStr;
+  const board = useMemo(() => generateBoard(boardSeed), [boardSeed]);
 
-  const [phase, setPhase] = useState(() => (locked ? 'locked' : 'idle'));
+  const [phase, setPhase] = useState(() =>
+    challenge ? 'playing' : locked ? 'locked' : 'idle'
+  );
   const [countdown, setCountdown] = useState(null);
   const [selection, setSelection] = useState([]);
   const [foundWords, setFoundWords] = useState(() =>
-    locked ? (loadResult(dateStr) ?? []) : []
+    challenge
+      ? (loadResult(challenge.storageKey) ?? [])
+      : locked
+        ? (loadResult(dateStr) ?? [])
+        : []
   );
   const [error, setError] = useState('');
   const [invalidWord, setInvalidWord] = useState('');
   const [suggested, setSuggested] = useState(false);
   const [successPoints, setSuccessPoints] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [startTime, setStartTime] = useState(null);
+  const [startTime, setStartTime] = useState(
+    () => challenge?.startTime ?? null
+  );
   const [remaining, setRemaining] = useState(GAME_DURATION_SECONDS);
   const [possibleWords, setPossibleWords] = useState(null);
+  const isChallenge = !!challenge;
+  const challengeKey = challenge?.storageKey;
 
   useEffect(() => {
+    // Board stats are cached per daily date; challenge boards don't have them.
+    if (isChallenge) return;
     let cancelled = false;
     fetch(`/api/games/board-stats?date=${dateStr}`, { credentials: 'include' })
       .then((res) => (res.ok ? res.json() : null))
@@ -48,7 +67,13 @@ export function useGame({
       cancelled = true;
       setPossibleWords(null);
     };
-  }, [dateStr]);
+  }, [dateStr, isChallenge]);
+
+  // Challenge runs skip startGame (they begin already playing), so fetch the
+  // word list here instead.
+  useEffect(() => {
+    if (isChallenge) loadWordList();
+  }, [isChallenge]);
 
   // 3-2-1 pre-game countdown: tick once per second, then start play.
   useEffect(() => {
@@ -91,12 +116,16 @@ export function useGame({
   }, [successPoints]);
 
   useEffect(() => {
-    if (phase === 'done' || phase === 'locked') {
+    if (challengeKey) {
+      // Saved continuously so a mid-run refresh keeps the words found so far.
+      saveResult(challengeKey, foundWords);
+    } else if (phase === 'done' || phase === 'locked') {
       saveResult(dateStr, foundWords);
     }
-  }, [phase, dateStr, foundWords]);
+  }, [phase, dateStr, foundWords, challengeKey]);
 
   useEffect(() => {
+    if (isChallenge) return; // daily locking doesn't apply to challenge runs
     if (phase === 'playing' || phase === 'done') return;
     if (locked && phase !== 'locked') {
       setPhase('locked');
@@ -106,7 +135,7 @@ export function useGame({
       setFoundWords([]);
       clearResult(dateStr);
     }
-  }, [locked, phase, dateStr]);
+  }, [locked, phase, dateStr, isChallenge]);
 
   const selectTile = useCallback((tile) => {
     setError('');
