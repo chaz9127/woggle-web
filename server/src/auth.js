@@ -170,14 +170,6 @@ function requireAuth(req, res, next) {
   next();
 }
 
-// Use after requireAuth.
-function requireTester(req, res, next) {
-  if (req.user.role !== "admin" && req.user.role !== "tester") {
-    return res.status(403).json({ error: "Forbidden" });
-  }
-  next();
-}
-
 function buildAuthRouter() {
   const router = express.Router();
 
@@ -384,5 +376,4 @@ module.exports = {
   buildSessionMiddleware,
   passport,
   requireAuth,
-  requireTester,
 };

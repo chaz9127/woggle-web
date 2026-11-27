@@ -11,7 +11,7 @@ async function apiFetch(path) {
   return res.json();
 }
 
-function WordsView({ words }) {
+function WordsView({ words, title = 'Words' }) {
   const sorted = [...words].sort(
     (a, b) => b.scrabble - a.scrabble || a.word.localeCompare(b.word)
   );
@@ -20,7 +20,9 @@ function WordsView({ words }) {
   }
   return (
     <div className="wordlist">
-      <h2 className="wordlist__title">Words ({sorted.length})</h2>
+      <h2 className="wordlist__title">
+        {title} ({sorted.length})
+      </h2>
       <ul className="wordlist__list">
         {sorted.map((w) => (
           <li key={w.word} className="wordlist__item">
@@ -72,9 +74,37 @@ export default function LeaderboardsPage() {
     };
   }, [date, user?.id]);
 
+  // The answer key follows the same visibility rules as other players' words,
+  // so the server decides; a 403 means the viewer hasn't finished this board.
+  const [answerKey, setAnswerKey] = useState(null);
+  const hasGames = !!data?.today?.length;
+  useEffect(() => {
+    if (!hasGames) return;
+    let cancelled = false;
+    fetch(`/api/games/possible-words?date=${date}`, { credentials: 'include' })
+      .then(async (res) => {
+        if (cancelled) return;
+        if (res.ok) {
+          const d = await res.json();
+          if (!cancelled) setAnswerKey({ date, words: d.words });
+        } else if (res.status === 403) {
+          setAnswerKey({ date, gated: true });
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+      setAnswerKey(null);
+    };
+  }, [date, user?.id, hasGames]);
+
   const viewingToday = date === today;
 
   const rows = !data ? [] : tab === 'today' ? data.today : data.allTime;
+
+  const answerKeyReason = !user
+    ? 'Sign in and finish today’s game to view the answer key'
+    : 'Finish today’s game to view the answer key';
 
   return (
     <div className="leaderboards">
@@ -113,6 +143,38 @@ export default function LeaderboardsPage() {
             max={today}
             onChange={(e) => setDate(e.target.value || today)}
           />
+          {answerKey && answerKey.date === date && (
+            <span className="leaderboard__words-tip-wrap">
+              <button
+                type="button"
+                className={`btn btn--ghost btn--inline ${answerKey.gated ? 'leaderboard__words-btn--disabled' : ''}`}
+                aria-disabled={!!answerKey.gated}
+                aria-label={
+                  answerKey.gated ? answerKeyReason : 'View the answer key'
+                }
+                onClick={
+                  answerKey.gated
+                    ? undefined
+                    : () =>
+                        setWordsModal({
+                          title: 'Answer key',
+                          date,
+                          words: answerKey.words.map((w) => ({
+                            ...w,
+                            letterCount: w.word.length,
+                          })),
+                        })
+                }
+              >
+                <List size={16} aria-hidden="true" /> Answer key
+              </button>
+              {answerKey.gated && (
+                <span className="leaderboard__words-tip" role="tooltip">
+                  {answerKeyReason}
+                </span>
+              )}
+            </span>
+          )}
           {!viewingToday && (
             <button
               type="button"
@@ -166,7 +228,7 @@ export default function LeaderboardsPage() {
                           ? undefined
                           : () =>
                               setWordsModal({
-                                username: row.username,
+                                title: row.username,
                                 date: rowDate,
                                 words: row.words,
                               })
@@ -187,10 +249,15 @@ export default function LeaderboardsPage() {
 
       <Modal
         open={!!wordsModal}
-        title={wordsModal ? `${wordsModal.username} — ${wordsModal.date}` : ''}
+        title={wordsModal ? `${wordsModal.title} — ${wordsModal.date}` : ''}
         onClose={() => setWordsModal(null)}
       >
-        {wordsModal && <WordsView words={wordsModal.words} />}
+        {wordsModal && (
+          <WordsView
+            words={wordsModal.words}
+            title={wordsModal.title === 'Answer key' ? 'All words' : 'Words'}
+          />
+        )}
       </Modal>
     </div>
   );

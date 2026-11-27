@@ -15,7 +15,6 @@ export const GAME_DURATION_SECONDS = import.meta.env.DEV ? 30 : 120;
 export function useGame({
   clearAfterInvalid = false,
   locked = false,
-  showPossibleWords = false,
 } = {}) {
   const dateStr = useMemo(() => todayDateString(), []);
   const board = useMemo(() => generateBoard(dateStr), [dateStr]);
@@ -36,7 +35,6 @@ export function useGame({
   const [possibleWords, setPossibleWords] = useState(null);
 
   useEffect(() => {
-    if (!showPossibleWords) return;
     let cancelled = false;
     fetch(`/api/games/board-stats?date=${dateStr}`, { credentials: 'include' })
       .then((res) => (res.ok ? res.json() : null))
@@ -50,7 +48,7 @@ export function useGame({
       cancelled = true;
       setPossibleWords(null);
     };
-  }, [dateStr, showPossibleWords]);
+  }, [dateStr]);
 
   // 3-2-1 pre-game countdown: tick once per second, then start play.
   useEffect(() => {

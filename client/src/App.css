@@ -1029,7 +1029,7 @@
 }
 .leaderboards__date {
   display: flex;
-  align-items: flex-end;
+  justify-content: space-between;
   gap: 12px;
 }
 .leaderboards__date input {

@@ -8,7 +8,7 @@ import LeaderboardsPage from './components/LeaderboardsPage';
 import SummaryModal from './components/SummaryModal';
 import BonusDrawer from './components/BonusDrawer';
 import StartScreen from './components/StartScreen';
-import TesterModal from './components/TesterModal';
+// import TesterModal from './components/TesterModal';
 import WhySignUpModal from './components/WhySignUpModal';
 import AuthModal from './auth/AuthModal';
 import AccountModal from './auth/AccountModal';
@@ -16,7 +16,6 @@ import ChooseUsername from './auth/ChooseUsername';
 import AdminPage from './admin/AdminPage';
 import NotFound from './components/NotFound';
 import { useAuth } from './auth/AuthContext';
-import { isPrivilegedUser } from './utils/roles';
 import { useGame } from './hooks/useGame';
 import { useGameStats } from './hooks/useGameStats';
 import { useTheme } from './hooks/useTheme';
@@ -68,7 +67,6 @@ export default function App() {
     startGame,
     dismissSummary,
   } = useGame({
-    showPossibleWords: isPrivilegedUser(user),
     clearAfterInvalid: user ? !!user.clearAfterInvalid : true,
     locked,
   });
@@ -301,14 +299,14 @@ export default function App() {
       </main>
 
       <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
-      <TesterModal
+      {/* <TesterModal
         open={
           (import.meta.env.DEV || user?.role === 'tester') &&
           !isLeaderboards &&
           !authOpen &&
           (phase === 'idle' || phase === 'locked')
         }
-      />
+      /> */}
       <WhySignUpModal
         open={whySignUpOpen}
         onClose={() => {
@@ -339,7 +337,7 @@ export default function App() {
         theme={theme}
         bonus={bonus}
         possibleWords={possibleWords}
-        showMissedWords={isPrivilegedUser(user) && playedToday}
+        showMissedWords={!!user && playedToday}
       />
       <BonusDrawer bonus={bonus} onClose={() => setBonus(null)} />
     </div>

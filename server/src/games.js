@@ -1,6 +1,6 @@
 const express = require("express");
 const { db } = require("./db");
-const { requireAuth, requireTester } = require("./auth");
+const { requireAuth } = require("./auth");
 const { generateBoard, isFormable } = require("./board");
 const { findClaimableBonus, markBonusClaimed } = require("./bonuses");
 const { ensureBoardStats, getBoardStats } = require("./boardSolver");
@@ -220,6 +220,9 @@ const leaderboardAllTime = db.prepare(`
   ORDER BY g.score DESC, g.completed_at ASC
   LIMIT 10
 `);
+const anyGameOnDate = db.prepare(
+  "SELECT 1 FROM user_games WHERE completed_at IS NOT NULL AND game_date = ? LIMIT 1"
+);
 const leaderboardToday = db.prepare(`
   SELECT u.username, g.score, g.found_words
   FROM user_games g
@@ -537,9 +540,8 @@ function buildGamesRouter() {
     });
   });
 
-  // Admin/tester only for now. The date window stays even if this opens up:
-  // each new date costs a full board solve.
-  router.get("/board-stats", requireAuth, requireTester, (req, res) => {
+  // The date window keeps this cheap: each new date costs a full board solve.
+  router.get("/board-stats", (req, res) => {
     const gameDate = String(req.query?.date || "");
     if (!isAcceptableLocalDate(gameDate)) {
       return res.status(400).json({ error: "Invalid date" });
@@ -549,13 +551,26 @@ function buildGamesRouter() {
     res.json({ gameDate, possibleWords });
   });
 
-  // The full answer list, so it stays locked until the player has finished.
-  router.get("/possible-words", requireAuth, requireTester, (req, res) => {
+  // The full answer list. Mirrors the leaderboard's word visibility: past
+  // dates are open to anyone, while the live board (or a later date still
+  // being played in other timezones) stays locked until the viewer has
+  // finished that game themselves.
+  router.get("/possible-words", (req, res) => {
     const gameDate = String(req.query?.date || "");
-    if (!isAcceptableLocalDate(gameDate)) {
+    if (!DATE_RE.test(gameDate)) {
       return res.status(400).json({ error: "Invalid date" });
     }
-    if (!findGame.get(req.user.id, gameDate)?.completed_at) {
+    if (gameDate < utcToday()) {
+      // Only solve past boards someone actually played, so arbitrary dates
+      // can't be used to trigger expensive solves.
+      if (!anyGameOnDate.get(gameDate)) {
+        return res.status(404).json({ error: "No games on this date" });
+      }
+    } else if (
+      !req.user ||
+      !isAcceptableLocalDate(gameDate) ||
+      !findGame.get(req.user.id, gameDate)?.completed_at
+    ) {
       return res.status(403).json({ error: "Game not completed" });
     }
     const { words } = getBoardStats(gameDate, generateBoard(gameDate));
