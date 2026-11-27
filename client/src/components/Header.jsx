@@ -5,47 +5,21 @@ import FeatureTooltip from './FeatureTooltip';
 import { featureTooltips } from '../config/featureTooltips';
 
 export default function Header({
-  theme,
-  onToggleTheme,
   onOpenRules,
   onOpenAuth,
   onOpenAccount,
   onOpenStats,
   onOpenLeaderboard,
+  onOpenSettings,
   remaining,
   showTimer,
 }) {
   const mm = String(Math.floor((remaining ?? 0) / 60)).padStart(1, '0');
   const ss = String((remaining ?? 0) % 60).padStart(2, '0');
   const low = showTimer && remaining <= 10;
-  const { user, logout, updatePreferences } = useAuth();
+  const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [prefBusy, setPrefBusy] = useState(false);
   const menuRef = useRef(null);
-
-  const toggleClearAfterInvalid = async () => {
-    if (prefBusy) return;
-    setPrefBusy(true);
-    try {
-      await updatePreferences({ clearAfterInvalid: !user.clearAfterInvalid });
-    } catch {
-      // surface via UI in a future pass; ignore silently for now
-    } finally {
-      setPrefBusy(false);
-    }
-  };
-
-  const toggleSubmitAfterSwipe = async () => {
-    if (prefBusy) return;
-    setPrefBusy(true);
-    try {
-      await updatePreferences({ submitAfterSwipe: !user.submitAfterSwipe });
-    } catch {
-      // surface via UI in a future pass; ignore silently for now
-    } finally {
-      setPrefBusy(false);
-    }
-  };
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -163,52 +137,18 @@ export default function Header({
                       Admin
                     </a>
                   )}
-                  <label className="header__menu-item header__menu-toggle">
-                    <span>Clear after invalid word</span>
-                    <span
-                      className={`switch ${user.clearAfterInvalid ? 'switch--on' : ''} ${prefBusy ? 'switch--busy' : ''}`}
-                    >
-                      <input
-                        type="checkbox"
-                        className="switch__input"
-                        checked={!!user.clearAfterInvalid}
-                        disabled={prefBusy}
-                        onChange={toggleClearAfterInvalid}
-                      />
-                      <span className="switch__thumb" />
-                    </span>
-                  </label>
-                  <label className="header__menu-item header__menu-toggle">
-                    <span>Submit word after swipe</span>
-                    <span
-                      className={`switch ${user.submitAfterSwipe ? 'switch--on' : ''} ${prefBusy ? 'switch--busy' : ''}`}
-                    >
-                      <input
-                        type="checkbox"
-                        className="switch__input"
-                        checked={!!user.submitAfterSwipe}
-                        disabled={prefBusy}
-                        onChange={toggleSubmitAfterSwipe}
-                      />
-                      <span className="switch__thumb" />
-                    </span>
-                  </label>
                 </>
               )}
-              <label className="header__menu-item header__menu-toggle">
-                <span>Dark mode</span>
-                <span
-                  className={`switch ${theme === 'dark' ? 'switch--on' : ''}`}
-                >
-                  <input
-                    type="checkbox"
-                    className="switch__input"
-                    checked={theme === 'dark'}
-                    onChange={onToggleTheme}
-                  />
-                  <span className="switch__thumb" />
-                </span>
-              </label>
+              <button
+                type="button"
+                className="header__menu-item"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onOpenSettings?.();
+                }}
+              >
+                Settings
+              </button>
               {user && (
                 <button
                   type="button"

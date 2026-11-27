@@ -5,6 +5,7 @@ import WordList from './components/WordList';
 import RulesModal from './components/RulesModal';
 import StatsModal from './components/StatsModal';
 import LeaderboardsPage from './components/LeaderboardsPage';
+import SettingsPage from './components/SettingsPage';
 import SummaryModal from './components/SummaryModal';
 import BonusDrawer from './components/BonusDrawer';
 import StartScreen from './components/StartScreen';
@@ -153,12 +154,11 @@ export default function App() {
     return <NotFound />;
   }
   const isLeaderboards = window.location.pathname.startsWith('/leaderboards');
+  const isSettings = window.location.pathname.startsWith('/settings');
 
   return (
     <div className="app">
       <Header
-        theme={theme}
-        onToggleTheme={toggleTheme}
         onOpenRules={() => setRulesOpen(true)}
         onOpenAuth={() => {
           setAuthMode('signin');
@@ -169,12 +169,17 @@ export default function App() {
         onOpenLeaderboard={() => {
           window.location.href = '/leaderboards';
         }}
+        onOpenSettings={() => {
+          window.location.href = '/settings';
+        }}
         remaining={remaining}
-        showTimer={!isLeaderboards && showTimer}
+        showTimer={!isLeaderboards && !isSettings && showTimer}
       />
       <main className="main">
         {isLeaderboards ? (
           <LeaderboardsPage />
+        ) : isSettings ? (
+          <SettingsPage theme={theme} onToggleTheme={toggleTheme} />
         ) : phase === 'countdown' ? (
           <div className="countdown">
             <span className="countdown__label">Get ready…</span>

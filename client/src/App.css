@@ -766,13 +766,6 @@
 .header__menu-item:hover {
   background: var(--bg-alt, rgba(0, 0, 0, 0.04));
 }
-.header__menu-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  cursor: pointer;
-}
 
 /* New-feature tooltip */
 .feature-tooltip {
@@ -1004,6 +997,58 @@
   text-align: center;
   color: var(--muted);
   margin: 0;
+}
+
+/* Settings page */
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.settings__title {
+  margin: 0;
+  font-size: 20px;
+}
+.settings__group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.settings__group-title {
+  margin: 0 0 2px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.settings__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+}
+.settings__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.settings__label {
+  font-weight: 600;
+}
+.settings__desc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.settings__error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--error);
 }
 
 /* Leaderboards page */
