@@ -8,7 +8,8 @@
     "start": "node src/app.js",
     "db": "node scripts/db-shell.js",
     "seed:words": "node scripts/seed-words.js",
-    "seed:users": "node scripts/seed-users.js"
+    "seed:users": "node scripts/seed-users.js",
+    "test": "node --test \"test/**/*.test.js\""
   },
   "keywords": [],
   "author": "",
