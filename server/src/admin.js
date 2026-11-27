@@ -8,7 +8,11 @@ const {
   deleteUnclaimedBonus,
 } = require("./bonuses");
 const { removeWordFromBoardStats } = require("./boardSolver");
-const { challengeCounts, challengesPerDay } = require("./challenges");
+const {
+  challengeCounts,
+  challengesPerDay,
+  recentChallenges,
+} = require("./challenges");
 
 const ROLES = new Set(["user", "tester", "admin"]);
 const SUGGESTION_STATUSES = new Set(["pending", "denied", "approved"]);
@@ -181,7 +185,7 @@ function buildAdminRouter() {
   });
 
   router.get("/challenges", (_req, res) => {
-    res.json(challengeCounts());
+    res.json({ ...challengeCounts(), recent: recentChallenges(20) });
   });
 
   router.get("/visualizations/games-played", (req, res) => {

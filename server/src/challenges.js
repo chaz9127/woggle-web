@@ -179,6 +179,43 @@ function challengeCounts() {
   return { ...t, open: t.total - t.completed - t.retracted - t.rejected };
 }
 
+// The newest challenges with their current status, for the admin page.
+// Scores only appear once a challenge is completed, as for the players.
+const recentChallengesStmt = db.prepare(
+  "SELECT * FROM challenges ORDER BY id DESC LIMIT ?"
+);
+
+function recentChallenges(limit = 20) {
+  return recentChallengesStmt.all(limit).map((challenge) => {
+    const players = playersOf.all(challenge.id);
+    const creator = players.find((p) => p.role === "creator");
+    const opponent = players.find((p) => p.role === "opponent");
+    const status = challengeStatus(challenge, players);
+    const name = (p) => (p ? p.username || "(deleted user)" : null);
+    const item = {
+      code: challenge.code,
+      createdAt: challenge.created_at,
+      status,
+      creator: name(creator),
+      opponent: name(opponent),
+      creatorFinished: !!creator?.finished_at,
+      opponentFinished: !!opponent?.finished_at,
+    };
+    if (status === "completed") {
+      const winner = decideWinner(creator, opponent);
+      item.result = {
+        winner:
+          winner === "draw"
+            ? null
+            : name(winner === "creator" ? creator : opponent),
+        creatorScore: creator.score,
+        opponentScore: opponent.score,
+      };
+    }
+    return item;
+  });
+}
+
 function recordFor(userId) {
   return tallyRecord(
     completedForRecord
@@ -584,4 +621,9 @@ function buildChallengesRouter() {
   return router;
 }
 
-module.exports = { buildChallengesRouter, challengeCounts, challengesPerDay };
+module.exports = {
+  buildChallengesRouter,
+  challengeCounts,
+  challengesPerDay,
+  recentChallenges,
+};

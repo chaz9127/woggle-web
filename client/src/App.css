@@ -1515,6 +1515,9 @@
   margin: 0 0 8px;
   font-size: 15px;
 }
+.admin__subsection {
+  margin-top: 24px;
+}
 .notfound {
   display: flex;
   flex-direction: column;
