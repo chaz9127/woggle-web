@@ -10,10 +10,10 @@
 //              (The tooltip also only shows when its `targetId` element exists.)
 export const featureTooltips = {
   viewWordsOnLeaderboard: {
-    name: 'viewWordsOnLeaderboard',
+    name: 'mostWordsLeaderboard',
     targetId: 'header-menu-button',
-    title: 'New Feature!',
-    body: "You can now view the words that each player has submitted on the leaderboard after you've played a game.",
+    title: 'New Leaderboard Just Dropped!',
+    body: "Can't crack a high score, but grab every 3-letter word in sight? There's a leaderboard for that now. Pick your strategy wisely.",
     show: ({ user, dismissed }) => !!user && !dismissed,
   },
   leaderboardSignUp2: {

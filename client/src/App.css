@@ -1001,6 +1001,32 @@
   color: var(--muted);
   font-style: italic;
 }
+.leaderboards__metric {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 3px;
+  gap: 3px;
+  border-radius: 8px;
+  background: var(--surface);
+}
+.leaderboards__metric-btn {
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.leaderboards__metric-btn:hover {
+  color: var(--text);
+}
+.leaderboards__metric-btn--active {
+  background: var(--accent);
+  color: #fff;
+}
 .leaderboards__tabs {
   display: flex;
   gap: 4px;

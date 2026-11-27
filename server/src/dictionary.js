@@ -1,3 +1,5 @@
+// word_suggestions references users, so auth must create that table first.
+require("./auth");
 const { db } = require("./db");
 
 db.exec(`
