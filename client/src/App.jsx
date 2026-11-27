@@ -26,6 +26,7 @@ import { useChallengeUnseen } from './hooks/useChallengeUnseen';
 import { useTheme } from './hooks/useTheme';
 import { todayDateString } from './utils/random';
 import { setUserType } from './utils/analytics';
+import { isPrivilegedUser } from './utils/roles';
 import {
   getPlayedCookie,
   setPlayedCookie,
@@ -138,10 +139,41 @@ export default function App() {
   );
   const isChallenge = !!challengeMatch;
   const isChallengesPage = /^\/challenges\/?$/.test(window.location.pathname);
+  // Challenge mode is tester-only during the beta. Signed-out visitors to a
+  // challenge link still get the sign-in prompt so testers can sign in.
+  const canChallenge = isPrivilegedUser(user);
+  if (
+    (isChallenge || isChallengesPage) &&
+    !authLoading &&
+    user &&
+    !canChallenge
+  ) {
+    return <NotFound />;
+  }
   const openAuth = (mode) => {
     setAuthMode(mode);
     setAuthOpen(true);
   };
+
+  const dailyStart = (
+    <StartScreen
+      dateStr={dateStr}
+      phase={phase}
+      locked={locked}
+      onStart={startGame}
+      onOverride={() => {
+        setOverrideCookie(dateStr);
+        setOverrideActive(true);
+      }}
+      onSignUp={() => openAuth('signup')}
+      onOpenRules={() => setRulesOpen(true)}
+      totals={totals}
+      foundWords={foundWords}
+      board={board}
+      theme={theme}
+      stats={stats}
+    />
+  );
 
   return (
     <div className="app">
@@ -192,30 +224,16 @@ export default function App() {
             </span>
           </div>
         ) : phase === 'idle' || phase === 'locked' ? (
-          <HomeScreen
-            dailyPlayed={locked}
-            unseenCount={unseenChallenges}
-            daily={
-              <StartScreen
-                dateStr={dateStr}
-                phase={phase}
-                locked={locked}
-                onStart={startGame}
-                onOverride={() => {
-                  setOverrideCookie(dateStr);
-                  setOverrideActive(true);
-                }}
-                onSignUp={() => openAuth('signup')}
-                onOpenRules={() => setRulesOpen(true)}
-                totals={totals}
-                foundWords={foundWords}
-                board={board}
-                theme={theme}
-                stats={stats}
-              />
-            }
-            challenge={<ChallengeHome onSignIn={() => openAuth('signin')} />}
-          />
+          canChallenge ? (
+            <HomeScreen
+              dailyPlayed={locked}
+              unseenCount={unseenChallenges}
+              daily={dailyStart}
+              challenge={<ChallengeHome onSignIn={() => openAuth('signin')} />}
+            />
+          ) : (
+            dailyStart
+          )
         ) : (
           <GamePlay
             game={game}

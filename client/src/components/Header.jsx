@@ -3,6 +3,7 @@ import { Menu, Pencil } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import FeatureTooltip from './FeatureTooltip';
 import { featureTooltips } from '../config/featureTooltips';
+import { isPrivilegedUser } from '../utils/roles';
 
 export default function Header({
   onOpenRules,
@@ -111,21 +112,23 @@ export default function Header({
                   </button>
                 </div>
               )}
-              <a
-                href="/challenges"
-                className="header__menu-item header__menu-challenges"
-                onClick={() => setMenuOpen(false)}
-              >
-                <span>
-                  Challenges <span className="pill">Beta</span>
-                </span>
-                {unseenCount > 0 && (
-                  <>
-                    <span className="dot" aria-hidden="true" />
-                    <span className="visually-hidden">{unseenText}</span>
-                  </>
-                )}
-              </a>
+              {isPrivilegedUser(user) && (
+                <a
+                  href="/challenges"
+                  className="header__menu-item header__menu-challenges"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <span>
+                    Challenges <span className="pill">Beta</span>
+                  </span>
+                  {unseenCount > 0 && (
+                    <>
+                      <span className="dot" aria-hidden="true" />
+                      <span className="visually-hidden">{unseenText}</span>
+                    </>
+                  )}
+                </a>
+              )}
               <button
                 type="button"
                 className="header__menu-item"

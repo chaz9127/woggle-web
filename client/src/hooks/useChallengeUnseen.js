@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { challengesApi } from '../utils/challengesApi';
+import { isPrivilegedUser } from '../utils/roles';
 
 const POLL_MS = 45 * 1000;
 
@@ -9,7 +10,8 @@ const POLL_MS = 45 * 1000;
 // single COUNT, so this stays cheap.
 export function useChallengeUnseen(user) {
   const [count, setCount] = useState(0);
-  const userId = user?.id ?? null;
+  // Challenge mode is tester-only during the beta.
+  const userId = isPrivilegedUser(user) ? user.id : null;
 
   const refresh = useCallback(async () => {
     if (!userId) return;

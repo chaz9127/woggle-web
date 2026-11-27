@@ -4,7 +4,7 @@
 const express = require("express");
 const rateLimit = require("express-rate-limit");
 const { db } = require("./db");
-const { requireAuth } = require("./auth"); // also creates the users table
+const { requireAuth, requireTester } = require("./auth"); // also creates the users table
 const { generateBoard } = require("./board");
 const { validateSubmittedWords } = require("./games");
 const {
@@ -323,6 +323,8 @@ const completeRunTx = db.transaction((challenge, me, other, result, nowMs) => {
 function buildChallengesRouter() {
   const router = express.Router();
   router.use(requireAuth);
+  // Beta: testers and admins only.
+  router.use(requireTester);
   router.use((req, res, next) => {
     sweep(Date.now());
     next();
