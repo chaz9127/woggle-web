@@ -26,6 +26,7 @@ export default function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [savingId, setSavingId] = useState(null);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -64,9 +65,32 @@ export default function AdminUsers() {
   if (loading) return <p className="admin__empty">Loading users…</p>;
   if (error) return <p className="admin__error">{error}</p>;
 
+  // Case-insensitive match on username or email, filtered in the browser.
+  const term = query.trim().toLowerCase();
+  const shown = term
+    ? users.filter(
+        (u) =>
+          (u.username || '').toLowerCase().includes(term) ||
+          (u.email || '').toLowerCase().includes(term)
+      )
+    : users;
+
   return (
     <div className="admin__section">
-      <h3 className="admin__section-title">Users ({users.length})</h3>
+      <h3 className="admin__section-title">
+        Users ({term ? `${shown.length} of ${users.length}` : users.length})
+      </h3>
+      <input
+        type="search"
+        className="admin__search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search username or email"
+        aria-label="Search users by username or email"
+      />
+      {term && shown.length === 0 && (
+        <p className="admin__empty">No users match “{query.trim()}”.</p>
+      )}
       <div className="admin__table-wrap">
         <table className="admin__table">
           <thead>
@@ -77,7 +101,7 @@ export default function AdminUsers() {
             </tr>
           </thead>
           <tbody>
-            {users.map((u) => (
+            {shown.map((u) => (
               <tr key={u.id}>
                 <td>
                   {u.username || <span className="admin__muted">(none)</span>}

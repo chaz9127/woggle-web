@@ -1494,6 +1494,17 @@
   font-size: 14px;
 }
 
+.admin__search {
+  width: 100%;
+  max-width: 360px;
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+}
 .notfound {
   display: flex;
   flex-direction: column;
