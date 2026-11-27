@@ -12,7 +12,7 @@ import HomeScreen from './components/HomeScreen';
 import ChallengeHome from './components/ChallengeHome';
 import ChallengePage from './components/ChallengePage';
 import ChallengesPage from './components/ChallengesPage';
-// import TesterModal from './components/TesterModal';
+import TesterModal from './components/TesterModal';
 import WhySignUpModal from './components/WhySignUpModal';
 import AuthModal from './auth/AuthModal';
 import AccountModal from './auth/AccountModal';
@@ -225,14 +225,14 @@ export default function App() {
       </main>
 
       <RulesModal open={rulesOpen} onClose={() => setRulesOpen(false)} />
-      {/* <TesterModal
+      <TesterModal
         open={
           (import.meta.env.DEV || user?.role === 'tester') &&
           !isLeaderboards &&
           !authOpen &&
           (phase === 'idle' || phase === 'locked')
         }
-      /> */}
+      />
       <WhySignUpModal
         open={whySignUpOpen && !isChallenge && !isChallengesPage}
         onClose={() => {
