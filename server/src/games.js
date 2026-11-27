@@ -258,14 +258,10 @@ const recentGames = db.prepare(`
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+const { yesterdayOf, nextStreak } = require("./streak");
+
 function utcToday() {
   return new Date().toISOString().slice(0, 10);
-}
-
-function yesterdayOf(dateStr) {
-  const d = new Date(dateStr + "T00:00:00Z");
-  d.setUTCDate(d.getUTCDate() - 1);
-  return d.toISOString().slice(0, 10);
 }
 
 function tomorrowOf(dateStr) {
@@ -291,6 +287,23 @@ function effectiveStreak(user) {
   if (user.last_completed_date === yesterdayOf(today))
     return user.current_streak;
   return 0;
+}
+
+// Challenge runs keep the streak going too (without counting as a daily game
+// in total_games). localDate is the player's own calendar day, accepted
+// within a day of UTC like daily completions; anything else falls back to UTC.
+const updateUserStreak = db.prepare(`
+  UPDATE users
+  SET current_streak = ?, longest_streak = ?, last_completed_date = ?
+  WHERE id = ?
+`);
+function recordStreakActivity(userId, localDate) {
+  if (!userId) return;
+  const date = isAcceptableLocalDate(localDate) ? localDate : utcToday();
+  const stats = findUserStats.get(userId);
+  if (!stats) return;
+  const streak = nextStreak(stats, date);
+  updateUserStreak.run(streak.current, streak.longest, streak.lastDate, userId);
 }
 
 const completeGameTx = db.transaction(
@@ -337,17 +350,22 @@ const completeGameTx = db.transaction(
     );
 
     const total = (stats.total_games || 0) + 1;
-    const prevStreak =
-      stats.last_completed_date === yesterdayOf(gameDate)
-        ? stats.current_streak || 0
-        : 0;
-    const newStreak = prevStreak + 1;
-    const longest = Math.max(stats.longest_streak || 0, newStreak);
-    updateUserStats.run(total, newStreak, longest, gameDate, userId);
+    const streak = nextStreak(stats, gameDate);
+    updateUserStats.run(
+      total,
+      streak.current,
+      streak.longest,
+      streak.lastDate,
+      userId
+    );
     return {
       score: finalScore,
       bonus: bonusPayload,
-      stats: { total, currentStreak: newStreak, longestStreak: longest },
+      stats: {
+        total,
+        currentStreak: streak.current,
+        longestStreak: streak.longest,
+      },
     };
   }
 );
@@ -646,4 +664,5 @@ module.exports = {
   buildGamesRouter,
   startBoardStatsScheduler,
   validateSubmittedWords,
+  recordStreakActivity,
 };

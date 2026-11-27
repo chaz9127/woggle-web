@@ -1,3 +1,5 @@
+import { todayDateString } from './random';
+
 // Thin wrapper over /api/challenges. Every call resolves to
 // { ok, status, data } rather than throwing, because several non-2xx answers
 // (409 full, 410 ended) still carry a challenge view the UI needs to render.
@@ -25,8 +27,13 @@ export const challengesApi = {
   get: (code) => request('GET', `/${enc(code)}`),
   join: (code) => request('POST', `/${enc(code)}/join`),
   start: (code) => request('POST', `/${enc(code)}/start`),
+  // localDate lets a finished run count toward the player's streak on their
+  // own calendar day, the same way daily completions do.
   complete: (code, words) =>
-    request('POST', `/${enc(code)}/complete`, { words }),
+    request('POST', `/${enc(code)}/complete`, {
+      words,
+      localDate: todayDateString(),
+    }),
   seen: (code) => request('POST', `/${enc(code)}/seen`),
   retract: (code) => request('POST', `/${enc(code)}/retract`),
   reject: (code) => request('POST', `/${enc(code)}/reject`),

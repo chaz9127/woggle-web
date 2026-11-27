@@ -6,7 +6,7 @@ const rateLimit = require("express-rate-limit");
 const { db } = require("./db");
 const { requireAuth, requireTester } = require("./auth"); // also creates the users table
 const { generateBoard } = require("./board");
-const { validateSubmittedWords } = require("./games");
+const { validateSubmittedWords, recordStreakActivity } = require("./games");
 const {
   RUN_SECONDS,
   GRACE_SECONDS,
@@ -371,21 +371,25 @@ const rejectTx = db.transaction((challenge, me, userId, nowMs) => {
   rejectChallenge.run(new Date(nowMs).toISOString(), challenge.id);
 });
 
-const completeRunTx = db.transaction((challenge, me, other, result, nowMs) => {
-  const now = new Date(nowMs).toISOString();
-  finishRun.run(
-    now,
-    result.score,
-    result.accepted.length,
-    JSON.stringify(result.accepted),
-    me.id
-  );
-  if (other?.finished_at) {
-    markCompleted.run(now, challenge.id);
-    // The last finisher sees the results straight away, so no dot for them.
-    markSeen.run(now, me.id);
+const completeRunTx = db.transaction(
+  (challenge, me, other, result, nowMs, localDate) => {
+    const now = new Date(nowMs).toISOString();
+    const { changes } = finishRun.run(
+      now,
+      result.score,
+      result.accepted.length,
+      JSON.stringify(result.accepted),
+      me.id
+    );
+    // Finishing your own run counts as playing today, for the streak.
+    if (changes) recordStreakActivity(me.user_id, localDate);
+    if (other?.finished_at) {
+      markCompleted.run(now, challenge.id);
+      // The last finisher sees the results straight away, so no dot for them.
+      markSeen.run(now, me.id);
+    }
   }
-});
+);
 
 function buildChallengesRouter() {
   const router = express.Router();
@@ -508,7 +512,14 @@ function buildChallengesRouter() {
         words
       );
       const other = players.find((p) => p.id !== me.id);
-      completeRunTx(challenge, me, other, result, nowMs);
+      completeRunTx(
+        challenge,
+        me,
+        other,
+        result,
+        nowMs,
+        String(req.body?.localDate || "")
+      );
       respond(res, challenge.id, req.user.id);
     })
   );

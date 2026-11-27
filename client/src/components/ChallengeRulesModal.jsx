@@ -32,8 +32,8 @@ export default function ChallengeRulesModal({ open, onClose }) {
           ties.
         </li>
         <li>
-          Challenges don't count toward your daily streak, stats or the
-          leaderboard.
+          Finishing your challenge run keeps your streak going. Challenges don't
+          count toward your daily stats or the leaderboard.
         </li>
       </ul>
     </Modal>
