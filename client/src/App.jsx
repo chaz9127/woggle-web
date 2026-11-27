@@ -11,6 +11,7 @@ import StartScreen from './components/StartScreen';
 import HomeScreen from './components/HomeScreen';
 import ChallengeHome from './components/ChallengeHome';
 import ChallengePage from './components/ChallengePage';
+import ChallengesPage from './components/ChallengesPage';
 // import TesterModal from './components/TesterModal';
 import WhySignUpModal from './components/WhySignUpModal';
 import AuthModal from './auth/AuthModal';
@@ -136,6 +137,7 @@ export default function App() {
     /^\/challenge\/([^/]*)\/?$/
   );
   const isChallenge = !!challengeMatch;
+  const isChallengesPage = /^\/challenges\/?$/.test(window.location.pathname);
   const openAuth = (mode) => {
     setAuthMode(mode);
     setAuthOpen(true);
@@ -161,7 +163,7 @@ export default function App() {
         showTimer={
           isChallenge
             ? challengeRemaining != null
-            : !isLeaderboards && !isSettings && showTimer
+            : !isLeaderboards && !isSettings && !isChallengesPage && showTimer
         }
         unseenCount={unseenChallenges}
       />
@@ -170,6 +172,11 @@ export default function App() {
           <LeaderboardsPage />
         ) : isSettings ? (
           <SettingsPage theme={theme} onToggleTheme={toggleTheme} />
+        ) : isChallengesPage ? (
+          <ChallengesPage
+            onSignIn={() => openAuth('signin')}
+            onSeen={refreshUnseenChallenges}
+          />
         ) : isChallenge ? (
           <ChallengePage
             code={decodeURIComponent(challengeMatch[1])}
@@ -227,7 +234,7 @@ export default function App() {
         }
       /> */}
       <WhySignUpModal
-        open={whySignUpOpen && !isChallenge}
+        open={whySignUpOpen && !isChallenge && !isChallengesPage}
         onClose={() => {
           setWhySignUpOpen(false);
           setWhySignUpDismissed(true);

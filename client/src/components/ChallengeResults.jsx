@@ -7,7 +7,9 @@ const noop = () => {};
 
 // Shown once both players have finished: who won, both scores, and every word
 // either player found, with words only one player found highlighted.
-export default function ChallengeResults({ view }) {
+// `embedded` renders just the summary (no card or page actions), for showing
+// it inline in the Challenges page list.
+export default function ChallengeResults({ view, embedded = false }) {
   const { results, role, code, seed } = view;
   const me = results.players.find((p) => p.role === role);
   const them = results.players.find((p) => p.role !== role);
@@ -74,9 +76,19 @@ export default function ChallengeResults({ view }) {
   };
 
   return (
-    <div className="start__card challenge-results">
-      <p className="start__date">Challenge {code}</p>
-      <h2 className="start__title">{headline}</h2>
+    <div
+      className={
+        embedded
+          ? 'challenge-results challenge-results--embedded'
+          : 'start__card challenge-results'
+      }
+    >
+      {!embedded && <p className="start__date">Challenge {code}</p>}
+      {embedded ? (
+        <h3 className="challenge-results__headline">{headline}</h3>
+      ) : (
+        <h2 className="start__title">{headline}</h2>
+      )}
       <div className="challenge-results__scores">
         {scoreCard(me, 'You')}
         {scoreCard(them, them.username)}
@@ -140,20 +152,24 @@ export default function ChallengeResults({ view }) {
         </details>
       )}
 
-      {error && <p className="challenge-home__error">{error}</p>}
-      <div className="btn-row">
-        <button
-          type="button"
-          className="btn btn--primary"
-          onClick={rematch}
-          disabled={creating}
-        >
-          {creating ? 'Creating…' : 'New challenge'}
-        </button>
-        <a href="/" className="btn">
-          Home
-        </a>
-      </div>
+      {!embedded && (
+        <>
+          {error && <p className="challenge-home__error">{error}</p>}
+          <div className="btn-row">
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={rematch}
+              disabled={creating}
+            >
+              {creating ? 'Starting…' : 'Start challenge'}
+            </button>
+            <a href="/" className="btn">
+              Home
+            </a>
+          </div>
+        </>
+      )}
     </div>
   );
 }

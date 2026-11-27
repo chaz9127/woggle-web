@@ -1,56 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import BetaBanner from './BetaBanner';
 import ChallengeList from './ChallengeList';
+import ChallengeRecord from './ChallengeRecord';
 import ChallengeRulesModal from './ChallengeRulesModal';
+import ChallengeStart from './ChallengeStart';
 import { useAuth } from '../auth/AuthContext';
-import {
-  challengesApi,
-  challengePath,
-  createAndOpenChallenge,
-  normalizeCode,
-} from '../utils/challengesApi';
+import { useChallengeList } from '../hooks/useChallengeList';
 
 // The homepage Challenge tab: start a challenge, join one by code, and see
-// your existing challenges.
+// your latest challenges (each linking to its page).
 export default function ChallengeHome({ onSignIn }) {
   const { user } = useAuth();
   const [rulesOpen, setRulesOpen] = useState(false);
-  const [groups, setGroups] = useState(null);
-  const [codeInput, setCodeInput] = useState('');
-  const [error, setError] = useState('');
-  const [creating, setCreating] = useState(false);
-  const userId = user?.id ?? null;
-
-  useEffect(() => {
-    if (!userId) return;
-    let cancelled = false;
-    challengesApi.list().then(({ ok, data }) => {
-      if (!cancelled && ok) setGroups(data);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [userId]);
-
-  const create = async () => {
-    setCreating(true);
-    setError('');
-    const err = await createAndOpenChallenge();
-    if (err) {
-      setError(err);
-      setCreating(false);
-    }
-  };
-
-  const join = (e) => {
-    e.preventDefault();
-    const code = normalizeCode(codeInput);
-    if (!code) {
-      setError('Codes are 4 letters or numbers, like K7RV.');
-      return;
-    }
-    window.location.href = challengePath(code);
-  };
+  const groups = useChallengeList(user);
 
   return (
     <div className="start">
@@ -63,42 +25,8 @@ export default function ChallengeHome({ onSignIn }) {
         </p>
         {user ? (
           <>
-            <div className="btn-row">
-              <button
-                type="button"
-                className="btn btn--primary"
-                onClick={create}
-                disabled={creating}
-              >
-                {creating ? 'Creating…' : 'New challenge'}
-              </button>
-              <button
-                type="button"
-                className="btn"
-                onClick={() => setRulesOpen(true)}
-              >
-                Rules
-              </button>
-            </div>
-            <form className="code-entry" onSubmit={join}>
-              <input
-                value={codeInput}
-                onChange={(e) => {
-                  setCodeInput(e.target.value.toUpperCase().slice(0, 4));
-                  setError('');
-                }}
-                placeholder="CODE"
-                aria-label="Challenge code"
-                autoCapitalize="characters"
-                autoComplete="off"
-                spellCheck={false}
-                maxLength={4}
-              />
-              <button type="submit" className="btn btn--inline">
-                Join
-              </button>
-            </form>
-            {error && <p className="challenge-home__error">{error}</p>}
+            <ChallengeRecord record={groups?.record} />
+            <ChallengeStart onOpenRules={() => setRulesOpen(true)} />
             {groups && (
               <>
                 <h3 className="challenge-home__subtitle">Your challenges</h3>

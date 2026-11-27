@@ -445,6 +445,7 @@
 }
 .modal__body {
   padding: 16px;
+  text-align: left;
 }
 
 .rules {
@@ -607,6 +608,15 @@
 .start__recap strong {
   font-size: 20px;
   font-variant-numeric: tabular-nums;
+}
+.start__recap--three {
+  grid-template-columns: repeat(3, 1fr);
+}
+.start__recap .start__recap-win strong {
+  color: var(--accent);
+}
+.start__recap .start__recap-loss strong {
+  color: var(--error);
 }
 .start__share-preview {
   margin: 4px 0 0;
@@ -1768,65 +1778,81 @@ a.btn {
 .challenge-list__toggle:hover {
   color: var(--text);
 }
-.challenge-record {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  font-size: 13px;
+/* Expandable completed challenges (Challenges page) */
+.challenge-list__item--expandable {
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
-.challenge-record__label {
-  margin-right: auto;
+.challenge-list__chevron {
+  color: var(--muted);
   font-size: 11px;
+  width: 10px;
+}
+.challenge-list__panel {
+  margin: 4px 0 8px;
+  padding: 14px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.challenge-list__open {
+  align-self: flex-end;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.challenge-record__stat {
-  color: var(--muted);
-}
-.challenge-record__stat strong {
-  font-size: 16px;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-}
-.challenge-record__stat--win strong {
   color: var(--accent);
+  text-decoration: none;
 }
-.challenge-record__stat--loss strong {
-  color: var(--error);
+.challenge-list__open:hover {
+  text-decoration: underline;
+}
+.challenge-results--embedded {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+}
+.challenge-results__headline {
+  margin: 0;
+  font-size: 18px;
 }
 
-/* Header dropdown: Challenges section */
+/* Header menu: Challenges link */
 .header__menu {
   max-height: calc(100svh - 80px);
   overflow-y: auto;
 }
-.header__menu-expander {
+.header__menu-challenges {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
-.header__menu-expander-end {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--muted);
-}
-.header__challenges {
+
+/* Challenges page (no card wrapper, unlike the homepage tab) */
+.challenges-page {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 4px 12px 12px;
+  gap: 14px;
 }
-.header__challenges-new {
-  align-self: flex-start;
-  padding: 6px 10px;
+.challenges-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.challenges-page__title {
+  margin: 0;
+  font-size: 20px;
+}
+/* On the plain page background the stat cards need the raised surface. */
+.challenges-page .start__recap > div {
+  background: var(--surface);
+  text-align: center;
 }
 
 /* Challenge page */

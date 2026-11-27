@@ -366,7 +366,7 @@ export default function ChallengePage({
               disabled={creating}
               onClick={newChallenge}
             >
-              New challenge
+              Start challenge
             </button>
             {homeLink}
           </div>
@@ -385,7 +385,7 @@ export default function ChallengePage({
               disabled={creating}
               onClick={newChallenge}
             >
-              New challenge
+              Start challenge
             </button>
             {homeLink}
           </div>
