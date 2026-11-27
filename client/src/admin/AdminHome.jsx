@@ -1,15 +1,6 @@
 import { useEffect, useState } from 'react';
 import { todayDateString } from '../utils/random';
-
-function StatCard({ label, value, sub }) {
-  return (
-    <div className="stat-card">
-      <div className="stat-card__label">{label}</div>
-      <div className="stat-card__value">{value}</div>
-      {sub && <div className="stat-card__sub">{sub}</div>}
-    </div>
-  );
-}
+import StatCard from './StatCard';
 
 export default function AdminHome() {
   const [stats, setStats] = useState(null);
@@ -45,8 +36,17 @@ export default function AdminHome() {
       </div>
       <div className="stat-grid">
         <StatCard
-          label="Total games completed"
+          label="Total games"
+          value={(stats.totalAllGames ?? stats.totalGames).toLocaleString()}
+          sub="Daily games + challenges"
+        />
+        <StatCard
+          label="Total daily games"
           value={stats.totalGames.toLocaleString()}
+        />
+        <StatCard
+          label="Total challenges"
+          value={(stats.totalChallenges ?? 0).toLocaleString()}
         />
         <StatCard
           label="Most games in a day"

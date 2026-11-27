@@ -141,25 +141,31 @@ export default function AdminVisualizations() {
     };
   }, [range]);
 
-  const chart = useMemo(() => {
+  // Daily games and challenges are bucketed the same way, so their values
+  // line up and Total games is just the sum of the two.
+  const charts = useMemo(() => {
     if (!data) return null;
-    if (range === 'week') return bucketWeek(data);
-    if (range === 'month') return bucketMonth(data);
-    return bucketYear(data);
+    const bucket =
+      range === 'week'
+        ? bucketWeek
+        : range === 'month'
+          ? bucketMonth
+          : bucketYear;
+    const daily = bucket(data);
+    const challenges = bucket({ ...data, days: data.challenges || [] });
+    return {
+      labels: daily.labels,
+      daily: daily.values,
+      challenges: challenges.values,
+      total: daily.values.map((v, i) => v + challenges.values[i]),
+    };
   }, [data, range]);
 
-  const chartData = chart
-    ? {
-        labels: chart.labels,
-        datasets: [
-          {
-            label: 'Games played',
-            data: chart.values,
-            backgroundColor: '#4f8cff',
-          },
-        ],
-      }
-    : null;
+  const CHARTS = [
+    { key: 'daily', title: 'Daily games', color: '#4f8cff' },
+    { key: 'challenges', title: 'Challenges', color: '#6aa86a' },
+    { key: 'total', title: 'Total games', color: '#c9a640' },
+  ];
 
   const chartOptions = {
     responsive: true,
@@ -187,12 +193,29 @@ export default function AdminVisualizations() {
         </select>
       </div>
       {error && <p className="admin__error">{error}</p>}
-      {loading && !chartData && <p className="admin__empty">Loading chart…</p>}
-      {chartData && (
-        <div style={{ height: 320 }}>
-          <Bar data={chartData} options={chartOptions} />
-        </div>
-      )}
+      {loading && !charts && <p className="admin__empty">Loading charts…</p>}
+      {charts &&
+        CHARTS.map(({ key, title, color }) => (
+          <section key={key} className="admin__chart">
+            <h4 className="admin__chart-title">
+              {title}
+              <span className="admin__muted">
+                {charts[key].reduce((a, b) => a + b, 0).toLocaleString()}
+              </span>
+            </h4>
+            <div style={{ height: 240 }}>
+              <Bar
+                data={{
+                  labels: charts.labels,
+                  datasets: [
+                    { label: title, data: charts[key], backgroundColor: color },
+                  ],
+                }}
+                options={chartOptions}
+              />
+            </div>
+          </section>
+        ))}
     </div>
   );
 }

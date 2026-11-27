@@ -8,6 +8,7 @@ const {
   deleteUnclaimedBonus,
 } = require("./bonuses");
 const { removeWordFromBoardStats } = require("./boardSolver");
+const { challengeCounts, challengesPerDay } = require("./challenges");
 
 const ROLES = new Set(["user", "tester", "admin"]);
 const SUGGESTION_STATUSES = new Set(["pending", "denied", "approved"]);
@@ -153,8 +154,12 @@ function buildAdminRouter() {
     const lifetime = statsLifetimeHigh.get();
     const todayHigh = statsTodayHigh.get(today);
     const busiest = statsBusiestDay.get();
+    const dailyGames = statsTotalGames.get().n;
+    const totalChallenges = challengeCounts().total;
     res.json({
-      totalGames: statsTotalGames.get().n,
+      totalGames: dailyGames,
+      totalChallenges,
+      totalAllGames: dailyGames + totalChallenges,
       gamesToday: statsGamesToday.get(today).n,
       totalWords: statsTotalWords.get().n,
       totalSignups: statsTotalSignups.get().n,
@@ -175,6 +180,10 @@ function buildAdminRouter() {
     });
   });
 
+  router.get("/challenges", (_req, res) => {
+    res.json(challengeCounts());
+  });
+
   router.get("/visualizations/games-played", (req, res) => {
     const range = ["week", "month", "year"].includes(req.query?.range)
       ? req.query.range
@@ -187,6 +196,7 @@ function buildAdminRouter() {
       start,
       end,
       days: rows.map((r) => ({ date: r.game_date, count: r.n })),
+      challenges: challengesPerDay(start, end),
     });
   });
 

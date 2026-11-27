@@ -5,6 +5,7 @@ import AdminBonuses from './AdminBonuses';
 import AdminWordSuggestions from './AdminWordSuggestions';
 import AdminWordRemovals from './AdminWordRemovals';
 import AdminVisualizations from './AdminVisualizations';
+import AdminChallenges from './AdminChallenges';
 import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function AdminPage() {
@@ -36,6 +37,11 @@ export default function AdminPage() {
     { key: 'home', label: 'Home', render: () => <AdminHome /> },
     { key: 'users', label: 'Users', render: () => <AdminUsers /> },
     { key: 'bonuses', label: 'Bonuses', render: () => <AdminBonuses /> },
+    {
+      key: 'challenges',
+      label: 'Challenges',
+      render: () => <AdminChallenges />,
+    },
     {
       key: 'word-suggestions',
       label: 'Word Suggestions',

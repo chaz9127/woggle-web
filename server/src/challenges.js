@@ -147,6 +147,38 @@ const completedForRecord = db.prepare(`
   WHERE c.completed_at IS NOT NULL
 `);
 
+// Site-wide totals for the admin pages. Every challenge ever created counts
+// toward the total; open ones are those not yet completed, retracted or
+// rejected.
+const challengeTotals = db.prepare(`
+  SELECT COUNT(*) AS total,
+         COUNT(completed_at) AS completed,
+         COUNT(retracted_at) AS retracted,
+         COUNT(rejected_at) AS rejected
+  FROM challenges
+`);
+
+// Challenges created per UTC day (created_at is stored in UTC), for the
+// admin charts. Dates are inclusive YYYY-MM-DD strings.
+const challengesPerDayStmt = db.prepare(`
+  SELECT date(created_at) AS day, COUNT(*) AS n
+  FROM challenges
+  WHERE date(created_at) BETWEEN ? AND ?
+  GROUP BY day
+  ORDER BY day ASC
+`);
+
+function challengesPerDay(start, end) {
+  return challengesPerDayStmt
+    .all(start, end)
+    .map((r) => ({ date: r.day, count: r.n }));
+}
+
+function challengeCounts() {
+  const t = challengeTotals.get();
+  return { ...t, open: t.total - t.completed - t.retracted - t.rejected };
+}
+
 function recordFor(userId) {
   return tallyRecord(
     completedForRecord
@@ -541,4 +573,4 @@ function buildChallengesRouter() {
   return router;
 }
 
-module.exports = { buildChallengesRouter };
+module.exports = { buildChallengesRouter, challengeCounts, challengesPerDay };

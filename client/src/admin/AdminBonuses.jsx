@@ -149,8 +149,8 @@ export default function AdminBonuses() {
           />
         </label>
         <p className="admin__muted">
-          Redeemed the first time the user finishes a game on or after the active
-          date, then consumed.
+          Redeemed the first time the user finishes a game on or after the
+          active date, then consumed.
         </p>
         <button
           type="submit"
@@ -163,7 +163,9 @@ export default function AdminBonuses() {
         {error && <p className="admin__error">{error}</p>}
       </form>
 
-      <h3 className="admin__section-title">Granted bonuses ({bonuses.length})</h3>
+      <h3 className="admin__section-title">
+        Granted bonuses ({bonuses.length})
+      </h3>
       {loading ? (
         <p className="admin__empty">Loading bonuses…</p>
       ) : bonuses.length === 0 ? (
