@@ -9,8 +9,15 @@ const {
   handleWordLookup,
   handleWordList,
   handleWordSuggest,
+  handleWordFlag,
 } = require("./dictionary");
-const { buildAuthRouter, buildSessionMiddleware, passport } = require("./auth");
+const {
+  buildAuthRouter,
+  buildSessionMiddleware,
+  passport,
+  requireAuth,
+  requireTester,
+} = require("./auth");
 const { buildGamesRouter, startBoardStatsScheduler } = require("./games");
 const { buildAdminRouter } = require("./admin");
 
@@ -52,6 +59,14 @@ app.use("/api/admin", buildAdminRouter());
 app.get("/api/words", lookupLimiter, handleWordList);
 app.get("/api/word/:word", lookupLimiter, handleWordLookup);
 app.post("/api/word/:word/suggest", suggestLimiter, handleWordSuggest);
+// Testers may flag several words from one answer key, so use the roomier limit.
+app.post(
+  "/api/word/:word/flag",
+  lookupLimiter,
+  requireAuth,
+  requireTester,
+  handleWordFlag
+);
 
 const clientDist = path.resolve(__dirname, "..", "..", "client", "dist");
 app.use(express.static(clientDist));

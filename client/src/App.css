@@ -382,6 +382,27 @@
   color: var(--text);
   font-weight: 600;
 }
+.wordlist__flag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: -4px -4px -4px 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.wordlist__flag:hover:not(:disabled) {
+  color: var(--error);
+  background: var(--border);
+}
+.wordlist__flag--flagged {
+  color: var(--error);
+  cursor: default;
+}
 
 /* Modal */
 .modal-backdrop {

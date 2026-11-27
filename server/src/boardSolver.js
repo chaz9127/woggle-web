@@ -111,4 +111,20 @@ function getBoardStats(gameDate, board) {
   return { possibleWords, words: JSON.parse(words) };
 }
 
-module.exports = { ensureBoardStats, getBoardStats };
+const selectStatsContaining = db.prepare(
+  "SELECT game_date AS gameDate, words FROM board_stats WHERE words LIKE ?"
+);
+const updateStatsWords = db.prepare(
+  "UPDATE board_stats SET possible_words = ?, words = ? WHERE game_date = ?"
+);
+
+// Strips a deleted word from every cached solve instead of re-solving those
+// boards, which would rebuild the full trie once per affected date.
+const removeWordFromBoardStats = db.transaction((word) => {
+  for (const row of selectStatsContaining.all(`%"${word}"%`)) {
+    const words = JSON.parse(row.words).filter((w) => w !== word);
+    updateStatsWords.run(words.length, JSON.stringify(words), row.gameDate);
+  }
+});
+
+module.exports = { ensureBoardStats, getBoardStats, removeWordFromBoardStats };

@@ -7,6 +7,7 @@ const {
   findBonus,
   deleteUnclaimedBonus,
 } = require("./bonuses");
+const { removeWordFromBoardStats } = require("./boardSolver");
 
 const ROLES = new Set(["user", "tester", "admin"]);
 const SUGGESTION_STATUSES = new Set(["pending", "denied", "approved"]);
@@ -46,6 +47,22 @@ const insertApprovedWord = db.prepare(
   "INSERT OR IGNORE INTO words(word) VALUES (?)"
 );
 const deleteWord = db.prepare("DELETE FROM words WHERE word = ?");
+
+const listRemovals = db.prepare(`
+  SELECT r.word, r.status, r.created_at, r.updated_at,
+         r.user_id, u.email AS user_email, u.username AS user_username
+  FROM word_removals r
+  LEFT JOIN users u ON u.id = r.user_id
+  ORDER BY
+    CASE r.status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 ELSE 2 END,
+    r.created_at DESC
+`);
+const updateRemovalStatus = db.prepare(
+  "UPDATE word_removals SET status = ? WHERE word = ?"
+);
+const findRemoval = db.prepare(
+  "SELECT word, status, created_at, updated_at FROM word_removals WHERE word = ?"
+);
 
 const statsTotalGames = db.prepare(
   "SELECT COUNT(*) AS n FROM user_games WHERE completed_at IS NOT NULL"
@@ -215,6 +232,35 @@ function buildAdminRouter() {
       deleteWord.run(word);
     }
     res.json({ suggestion: findSuggestion.get(word) });
+  });
+
+  router.get("/word-removals", (_req, res) => {
+    res.json({ removals: listRemovals.all() });
+  });
+
+  // The inverse of word-suggestions: approving deletes the word, denying
+  // (e.g. undoing an approval) puts it back.
+  router.patch("/word-removals/:word/status", (req, res) => {
+    const word = String(req.params.word || "").toLowerCase();
+    const status = String(req.body?.status || "");
+    if (!/^[a-z]{1,16}$/.test(word)) {
+      return res.status(400).json({ error: "Invalid word" });
+    }
+    if (!SUGGESTION_STATUSES.has(status)) {
+      return res.status(400).json({ error: "Invalid status" });
+    }
+    const existing = findRemoval.get(word);
+    if (!existing) {
+      return res.status(404).json({ error: "Removal request not found" });
+    }
+    updateRemovalStatus.run(status, word);
+    if (status === "approved") {
+      deleteWord.run(word);
+      removeWordFromBoardStats(word);
+    } else if (status === "denied" && existing.status === "approved") {
+      insertApprovedWord.run(word);
+    }
+    res.json({ removal: findRemoval.get(word) });
   });
 
   router.get("/bonuses", (_req, res) => {

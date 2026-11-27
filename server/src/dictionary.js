@@ -91,10 +91,31 @@ db.exec(`
     END;
 `);
 
+// Testers/admins flag existing words they believe are fake; an admin approves
+// (deletes the word) or denies each flag, mirroring word_suggestions.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS word_removals (
+    word TEXT PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'denied', 'approved')),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE TRIGGER IF NOT EXISTS word_removals_updated_at
+    AFTER UPDATE ON word_removals
+    FOR EACH ROW
+    BEGIN
+      UPDATE word_removals SET updated_at = CURRENT_TIMESTAMP WHERE word = OLD.word;
+    END;
+`);
+
 const selectStmt = db.prepare("SELECT 1 FROM words WHERE word = ?");
 const allWordsStmt = db.prepare("SELECT word FROM words ORDER BY word");
 const insertSuggestionStmt = db.prepare(
   "INSERT OR IGNORE INTO word_suggestions(word, user_id) VALUES (?, ?)"
+);
+const insertRemovalStmt = db.prepare(
+  "INSERT OR IGNORE INTO word_removals(word, user_id) VALUES (?, ?)"
 );
 
 function handleWordLookup(req, res) {
@@ -127,4 +148,23 @@ function handleWordSuggest(req, res) {
   res.status(204).end();
 }
 
-module.exports = { handleWordLookup, handleWordList, handleWordSuggest };
+// Use after requireAuth + requireTester. Re-flagging an already-reviewed word
+// is a no-op so a denied flag isn't silently reopened.
+function handleWordFlag(req, res) {
+  const word = (req.params.word || "").toLowerCase();
+  if (!/^[a-z]{1,16}$/.test(word)) {
+    return res.status(400).json({ error: "Invalid word" });
+  }
+  if (!selectStmt.get(word)) {
+    return res.status(404).json({ error: "Word not found" });
+  }
+  insertRemovalStmt.run(word, req.user.id);
+  res.status(204).end();
+}
+
+module.exports = {
+  handleWordLookup,
+  handleWordList,
+  handleWordSuggest,
+  handleWordFlag,
+};

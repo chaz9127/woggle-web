@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { List } from 'lucide-react';
+import { Flag, List } from 'lucide-react';
 import { todayDateString } from '../utils/random';
+import { isPrivilegedUser } from '../utils/roles';
 import { usePageTitle } from '../hooks/usePageTitle';
 import { useAuth } from '../auth/AuthContext';
 import Modal from './Modal';
@@ -11,7 +12,8 @@ async function apiFetch(path) {
   return res.json();
 }
 
-function WordsView({ words, title = 'Words' }) {
+// onFlag is only passed for testers/admins viewing the answer key.
+function WordsView({ words, title = 'Words', onFlag, flagged }) {
   const sorted = [...words].sort(
     (a, b) => b.scrabble - a.scrabble || a.word.localeCompare(b.word)
   );
@@ -32,6 +34,26 @@ function WordsView({ words, title = 'Words' }) {
               <span title="Score" className="wordlist__scrabble">
                 {w.scrabble}
               </span>
+              {onFlag && (
+                <button
+                  type="button"
+                  className={`wordlist__flag ${flagged.has(w.word) ? 'wordlist__flag--flagged' : ''}`}
+                  disabled={flagged.has(w.word)}
+                  title={
+                    flagged.has(w.word)
+                      ? 'Flagged for removal'
+                      : 'Flag as fake word'
+                  }
+                  aria-label={
+                    flagged.has(w.word)
+                      ? `${w.word} flagged for removal`
+                      : `Flag ${w.word} as a fake word`
+                  }
+                  onClick={() => onFlag(w.word)}
+                >
+                  <Flag size={14} aria-hidden="true" />
+                </button>
+              )}
             </span>
           </li>
         ))}
@@ -110,6 +132,22 @@ export default function LeaderboardsPage() {
         ? data.today
         : data.allTime;
 
+  // Words flagged this session, so the button reflects the click immediately.
+  // The server ignores repeat flags, so re-flagging after a reload is harmless.
+  const [flagged, setFlagged] = useState(() => new Set());
+  const flagWord = async (word) => {
+    if (!window.confirm(`Flag "${word.toUpperCase()}" as a fake word?`)) return;
+    const res = await fetch(`/api/word/${encodeURIComponent(word)}/flag`, {
+      method: 'POST',
+      credentials: 'include',
+    }).catch(() => null);
+    if (res?.ok) {
+      setFlagged((prev) => new Set(prev).add(word));
+    } else {
+      window.alert('Could not flag that word. Please try again.');
+    }
+  };
+
   const answerKeyReason = !user
     ? 'Sign in and finish today’s game to view the answer key'
     : 'Finish today’s game to view the answer key';
@@ -183,6 +221,7 @@ export default function LeaderboardsPage() {
                     : () =>
                         setWordsModal({
                           title: 'Answer key',
+                          isAnswerKey: true,
                           date,
                           words: answerKey.words.map((w) => ({
                             ...w,
@@ -288,7 +327,13 @@ export default function LeaderboardsPage() {
         {wordsModal && (
           <WordsView
             words={wordsModal.words}
-            title={wordsModal.title === 'Answer key' ? 'All words' : 'Words'}
+            title={wordsModal.isAnswerKey ? 'All words' : 'Words'}
+            onFlag={
+              wordsModal.isAnswerKey && isPrivilegedUser(user)
+                ? flagWord
+                : undefined
+            }
+            flagged={flagged}
           />
         )}
       </Modal>

@@ -3,26 +3,30 @@ import AdminHome from './AdminHome';
 import AdminUsers from './AdminUsers';
 import AdminBonuses from './AdminBonuses';
 import AdminWordSuggestions from './AdminWordSuggestions';
+import AdminWordRemovals from './AdminWordRemovals';
 import AdminVisualizations from './AdminVisualizations';
 import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function AdminPage() {
   const [active, setActive] = useState('home');
   const [pendingCount, setPendingCount] = useState(0);
+  const [pendingRemovals, setPendingRemovals] = useState(0);
   const [navCollapsed, setNavCollapsed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/admin/word-suggestions', { credentials: 'include' })
-      .then((res) => (res.ok ? res.json() : { suggestions: [] }))
-      .then((data) => {
-        if (cancelled) return;
-        const count = (data.suggestions || []).filter(
-          (s) => s.status === 'pending'
-        ).length;
-        setPendingCount(count);
-      })
-      .catch(() => {});
+    const loadPending = (path, key, setCount) =>
+      fetch(path, { credentials: 'include' })
+        .then((res) => (res.ok ? res.json() : {}))
+        .then((data) => {
+          if (cancelled) return;
+          setCount(
+            (data[key] || []).filter((s) => s.status === 'pending').length
+          );
+        })
+        .catch(() => {});
+    loadPending('/api/admin/word-suggestions', 'suggestions', setPendingCount);
+    loadPending('/api/admin/word-removals', 'removals', setPendingRemovals);
     return () => {
       cancelled = true;
     };
@@ -38,6 +42,14 @@ export default function AdminPage() {
       badge: pendingCount,
       render: () => (
         <AdminWordSuggestions onPendingCountChange={setPendingCount} />
+      ),
+    },
+    {
+      key: 'word-removals',
+      label: 'Word Removals',
+      badge: pendingRemovals,
+      render: () => (
+        <AdminWordRemovals onPendingCountChange={setPendingRemovals} />
       ),
     },
     {
