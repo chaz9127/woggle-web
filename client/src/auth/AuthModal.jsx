@@ -2,6 +2,15 @@ import { useEffect, useState } from 'react';
 import Modal from '../components/Modal';
 import { useAuth } from './AuthContext';
 
+// Google sign-in leaves the app, so a challenge link asks the server to bring
+// the player back to it afterwards (the server only accepts challenge paths).
+function googleReturnTo() {
+  const path = window.location.pathname;
+  return /^\/challenge\/[A-Z0-9]{4}$/.test(path)
+    ? `?returnTo=${encodeURIComponent(path)}`
+    : '';
+}
+
 export default function AuthModal({ open, onClose, initialMode = 'signin' }) {
   const [mode, setMode] = useState(initialMode);
   useEffect(() => {
@@ -98,7 +107,10 @@ export default function AuthModal({ open, onClose, initialMode = 'signin' }) {
           <span>or</span>
         </div>
 
-        <a href="/api/auth/google" className="btn btn--ghost auth-google">
+        <a
+          href={`/api/auth/google${googleReturnTo()}`}
+          className="btn btn--ghost auth-google"
+        >
           <svg
             className="auth-google__logo"
             width="18"
