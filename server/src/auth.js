@@ -170,6 +170,18 @@ function requireAuth(req, res, next) {
   next();
 }
 
+// Only same-site challenge pages may be returned to, never an arbitrary URL.
+const RETURN_TO_RE = /^\/challenge\/[A-Z0-9]{4}$/;
+const RETURN_TO_COOKIE = "woggle_return_to";
+
+function readCookie(req, name) {
+  for (const part of String(req.headers.cookie || "").split(";")) {
+    const [key, ...rest] = part.trim().split("=");
+    if (key === name) return decodeURIComponent(rest.join("="));
+  }
+  return "";
+}
+
 // Use after requireAuth.
 function requireTester(req, res, next) {
   if (req.user.role !== "admin" && req.user.role !== "tester") {
@@ -320,8 +332,23 @@ function buildAuthRouter() {
   });
 
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    // The OAuth round trip leaves the app, so a page that started it (a
+    // challenge link) is remembered in a short-lived cookie rather than the
+    // session, which passport regenerates on login.
     router.get(
       "/google",
+      (req, res, next) => {
+        const returnTo = String(req.query?.returnTo || "");
+        if (RETURN_TO_RE.test(returnTo)) {
+          res.cookie(RETURN_TO_COOKIE, returnTo, {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 10 * 60 * 1000,
+          });
+        }
+        next();
+      },
       passport.authenticate("google", { scope: ["profile", "email"] })
     );
     router.get(
@@ -330,8 +357,10 @@ function buildAuthRouter() {
         failureRedirect: "/signin?error=google",
       }),
       (req, res) => {
-        const dest = req.user?.username ? "/" : "/choose-username";
-        res.redirect(dest);
+        const returnTo = readCookie(req, RETURN_TO_COOKIE);
+        res.clearCookie(RETURN_TO_COOKIE);
+        if (!req.user?.username) return res.redirect("/choose-username");
+        res.redirect(RETURN_TO_RE.test(returnTo) ? returnTo : "/");
       }
     );
   } else {

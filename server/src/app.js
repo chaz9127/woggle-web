@@ -20,6 +20,7 @@ const {
 } = require("./auth");
 const { buildGamesRouter, startBoardStatsScheduler } = require("./games");
 const { buildAdminRouter } = require("./admin");
+const { buildChallengesRouter } = require("./challenges");
 
 const lookupLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -56,6 +57,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", buildAuthRouter());
 app.use("/api/games", buildGamesRouter());
 app.use("/api/admin", buildAdminRouter());
+app.use("/api/challenges", buildChallengesRouter());
 app.get("/api/words", lookupLimiter, handleWordList);
 app.get("/api/word/:word", lookupLimiter, handleWordLookup);
 app.post("/api/word/:word/suggest", suggestLimiter, handleWordSuggest);
