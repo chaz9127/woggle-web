@@ -352,6 +352,64 @@ const completeGameTx = db.transaction(
   }
 );
 
+// Validates a client-submitted word list against a board exactly as daily
+// completion does: dictionary lookup, traceable on the board, deduped, scored
+// server-side. Shared with challenge mode so both stay in lockstep.
+function validateSubmittedWords(board, words) {
+  const seen = new Set();
+  const accepted = [];
+  let score = 0;
+  let highestWord = null;
+  let highestWordScore = 0;
+  for (const raw of words) {
+    let candidate;
+    let tileIds = [];
+    let letterCount = null;
+    if (typeof raw === "string") {
+      candidate = raw;
+    } else if (raw && typeof raw === "object" && typeof raw.word === "string") {
+      candidate = raw.word;
+      if (Array.isArray(raw.tileIds)) {
+        tileIds = raw.tileIds
+          .filter((id) => Number.isInteger(id) && id >= 0 && id < 16)
+          .slice(0, 16);
+      }
+      if (
+        Number.isInteger(raw.letterCount) &&
+        raw.letterCount > 0 &&
+        raw.letterCount <= 32
+      ) {
+        letterCount = raw.letterCount;
+      }
+    } else {
+      continue;
+    }
+    const w = candidate.toLowerCase().trim();
+    if (!/^[a-z]{3,16}$/.test(w)) continue;
+    if (seen.has(w)) continue;
+    if (!wordExists.get(w)) continue;
+    if (!isFormable(board, w)) continue;
+    seen.add(w);
+    const ws = scoreWord(w);
+    accepted.push({
+      word: w,
+      scrabble: ws,
+      tileIds,
+      letterCount: letterCount ?? w.length,
+    });
+    score += ws;
+    if (
+      ws > highestWordScore ||
+      (ws === highestWordScore && w.length > (highestWord?.length || 0))
+    ) {
+      highestWord = w;
+      highestWordScore = ws;
+    }
+  }
+
+  return { accepted, score, highestWord, highestWordScore };
+}
+
 function buildGamesRouter() {
   const router = express.Router();
 
@@ -366,60 +424,8 @@ function buildGamesRouter() {
     }
 
     const board = generateBoard(gameDate);
-    const seen = new Set();
-    const accepted = [];
-    let score = 0;
-    let highestWord = null;
-    let highestWordScore = 0;
-    for (const raw of words) {
-      let candidate;
-      let tileIds = [];
-      let letterCount = null;
-      if (typeof raw === "string") {
-        candidate = raw;
-      } else if (
-        raw &&
-        typeof raw === "object" &&
-        typeof raw.word === "string"
-      ) {
-        candidate = raw.word;
-        if (Array.isArray(raw.tileIds)) {
-          tileIds = raw.tileIds
-            .filter((id) => Number.isInteger(id) && id >= 0 && id < 16)
-            .slice(0, 16);
-        }
-        if (
-          Number.isInteger(raw.letterCount) &&
-          raw.letterCount > 0 &&
-          raw.letterCount <= 32
-        ) {
-          letterCount = raw.letterCount;
-        }
-      } else {
-        continue;
-      }
-      const w = candidate.toLowerCase().trim();
-      if (!/^[a-z]{3,16}$/.test(w)) continue;
-      if (seen.has(w)) continue;
-      if (!wordExists.get(w)) continue;
-      if (!isFormable(board, w)) continue;
-      seen.add(w);
-      const ws = scoreWord(w);
-      accepted.push({
-        word: w,
-        scrabble: ws,
-        tileIds,
-        letterCount: letterCount ?? w.length,
-      });
-      score += ws;
-      if (
-        ws > highestWordScore ||
-        (ws === highestWordScore && w.length > (highestWord?.length || 0))
-      ) {
-        highestWord = w;
-        highestWordScore = ws;
-      }
-    }
+    const { accepted, score, highestWord, highestWordScore } =
+      validateSubmittedWords(board, words);
 
     if (!req.user) {
       insertGame.run(
@@ -636,4 +642,8 @@ function startBoardStatsScheduler() {
   setInterval(seedTodayAndTomorrow, BOARD_STATS_INTERVAL_MS);
 }
 
-module.exports = { buildGamesRouter, startBoardStatsScheduler };
+module.exports = {
+  buildGamesRouter,
+  startBoardStatsScheduler,
+  validateSubmittedWords,
+};
