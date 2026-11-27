@@ -71,6 +71,15 @@ db.exec(`
     END;
 `);
 
+// Added after the first release, so existing databases get it here.
+const challengeCols = db
+  .prepare("PRAGMA table_info(challenges)")
+  .all()
+  .map((c) => c.name);
+if (!challengeCols.includes("rejected_at")) {
+  db.exec("ALTER TABLE challenges ADD COLUMN rejected_at TEXT");
+}
+
 const insertChallenge = db.prepare(
   "INSERT INTO challenges (code, seed, creator_id) VALUES (?, ?, ?)"
 );
@@ -96,6 +105,7 @@ const finishRun = db.prepare(`
 const markCompleted = db.prepare(`
   UPDATE challenges SET completed_at = ?
   WHERE id = ? AND completed_at IS NULL AND retracted_at IS NULL
+    AND rejected_at IS NULL
 `);
 const markSeen = db.prepare(
   "UPDATE challenge_players SET results_seen_at = ? WHERE id = ? AND results_seen_at IS NULL"
@@ -103,6 +113,12 @@ const markSeen = db.prepare(
 const retractChallenge = db.prepare(`
   UPDATE challenges SET retracted_at = ?
   WHERE id = ? AND completed_at IS NULL AND retracted_at IS NULL
+    AND rejected_at IS NULL
+`);
+const rejectChallenge = db.prepare(`
+  UPDATE challenges SET rejected_at = ?
+  WHERE id = ? AND completed_at IS NULL AND retracted_at IS NULL
+    AND rejected_at IS NULL
 `);
 const listMine = db.prepare(`
   SELECT c.*
@@ -119,7 +135,7 @@ const unseenCount = db.prepare(`
   WHERE p.user_id = ? AND c.completed_at IS NOT NULL AND p.results_seen_at IS NULL
 `);
 // Every completed challenge (not just the 50 listed), for the overall record.
-// Retracted challenges never complete, so they don't count.
+// Retracted and rejected challenges never complete, so they don't count.
 const completedForRecord = db.prepare(`
   SELECT me.role,
          cr.score AS creator_score, cr.word_count AS creator_words,
@@ -157,11 +173,13 @@ const expireStaleRuns = db.prepare(`
     AND challenge_id IN (
       SELECT id FROM challenges
       WHERE completed_at IS NULL AND retracted_at IS NULL
+        AND rejected_at IS NULL
     )
 `);
 const completeReadyChallenges = db.prepare(`
   UPDATE challenges SET completed_at = ?
   WHERE completed_at IS NULL AND retracted_at IS NULL
+    AND rejected_at IS NULL
     AND (
       SELECT COUNT(*) FROM challenge_players p
       WHERE p.challenge_id = challenges.id AND p.finished_at IS NOT NULL
@@ -206,6 +224,7 @@ function buildView(challenge, players, userId, nowMs) {
   };
   if (!me) {
     view.joinable = status === "waiting";
+    view.canReject = view.joinable;
     view.full = status === "in_progress";
     return view;
   }
@@ -221,8 +240,11 @@ function buildView(challenge, players, userId, nowMs) {
   };
   view.otherFinished = !!other?.finished_at;
   view.canRetract = me.role === "creator" && !isEnded(status);
+  view.canReject = canReject(me, status);
   // The board is only revealed once this player has started their own run.
-  if (me.started_at && status !== "retracted") view.seed = challenge.seed;
+  if (me.started_at && status !== "retracted" && status !== "rejected") {
+    view.seed = challenge.seed;
+  }
 
   if (status === "completed") {
     const winner = decideWinner(creator, opponent);
@@ -238,6 +260,12 @@ function buildView(challenge, players, userId, nowMs) {
     };
   }
   return view;
+}
+
+// The invited player can turn a challenge down until they start their run
+// (after that it plays out, so nobody can bail on a losing run).
+function canReject(me, status) {
+  return me.role === "opponent" && !me.started_at && !isEnded(status);
 }
 
 function loadChallenge(code) {
@@ -302,6 +330,13 @@ const createChallengeTx = db.transaction((userId) => {
     }
   }
   throw new Error("Could not allocate a challenge code");
+});
+
+// Rejecting from the invite screen takes the opponent seat first, so the
+// challenge shows up in the rejecting player's history too.
+const rejectTx = db.transaction((challenge, me, userId, nowMs) => {
+  if (!me) insertPlayer.run(challenge.id, userId, "opponent");
+  rejectChallenge.run(new Date(nowMs).toISOString(), challenge.id);
 });
 
 const completeRunTx = db.transaction((challenge, me, other, result, nowMs) => {
@@ -424,7 +459,7 @@ function buildChallengesRouter() {
         return res.status(400).json({ error: "words must be an array" });
       }
       const status = challengeStatus(challenge, players);
-      if (status === "retracted") {
+      if (status === "retracted" || status === "rejected") {
         return respond(res, challenge.id, req.user.id, 410);
       }
       if (!me.started_at) {
@@ -470,6 +505,35 @@ function buildChallengesRouter() {
         return respond(res, challenge.id, req.user.id, 409);
       }
       retractChallenge.run(new Date().toISOString(), challenge.id);
+      respond(res, challenge.id, req.user.id);
+    })
+  );
+
+  // The invited player turns the challenge down: either straight from the
+  // invite (without joining first) or after accepting, until their run
+  // starts. It ends for both players, no scores are shown, and it stays in
+  // both histories without counting toward either record.
+  router.post(
+    "/:code/reject",
+    lookupLimiter,
+    withChallenge((req, res, { challenge, players, me }) => {
+      const status = challengeStatus(challenge, players);
+      const allowed = me ? canReject(me, status) : status === "waiting";
+      if (!allowed) {
+        if (me?.role === "creator") {
+          return res
+            .status(403)
+            .json({ error: "Retract your own challenge instead" });
+        }
+        return respond(res, challenge.id, req.user.id, 409);
+      }
+      try {
+        rejectTx(challenge, me, req.user.id, Date.now());
+      } catch (err) {
+        // Someone else took the opponent seat a moment ago.
+        if (err.code !== "SQLITE_CONSTRAINT_UNIQUE") throw err;
+        return respond(res, challenge.id, req.user.id, 409);
+      }
       respond(res, challenge.id, req.user.id);
     })
   );

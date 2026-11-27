@@ -78,16 +78,20 @@ function isRunExpired(startedAtIso, nowMs) {
 }
 
 // Lifecycle: waiting (no opponent yet) -> in_progress (opponent joined) ->
-// completed (both finished). Retracted ends it from either open state.
+// completed (both finished). Retracted (by the creator) or rejected (by the
+// invited player) ends it from either open state.
 function challengeStatus(challenge, players) {
   if (challenge.retracted_at) return "retracted";
+  if (challenge.rejected_at) return "rejected";
   if (challenge.completed_at) return "completed";
   if (!players.some((p) => p.role === "opponent")) return "waiting";
   return "in_progress";
 }
 
 function isEnded(status) {
-  return status === "retracted" || status === "completed";
+  return (
+    status === "retracted" || status === "rejected" || status === "completed"
+  );
 }
 
 // Higher score wins; a tied score goes to whoever found more words; if both
@@ -119,7 +123,8 @@ function tallyRecord(outcomes) {
 }
 
 // A participant has an unseen result once the challenge is completed and they
-// haven't opened the results yet. Retracted challenges never produce a dot.
+// haven't opened the results yet. Retracted and rejected challenges never
+// complete, so they never produce a dot.
 function hasUnseenResult(challenge, player) {
   return !!challenge.completed_at && !player.results_seen_at;
 }
@@ -127,6 +132,9 @@ function hasUnseenResult(challenge, player) {
 // One-line, per-viewer status shown in lists ("Your turn", "You won", ...).
 function viewerLabel(status, me, opponent, winner) {
   if (status === "retracted") return "Retracted";
+  if (status === "rejected") {
+    return me.role === "opponent" ? "You rejected" : "Rejected";
+  }
   if (status === "waiting") {
     return me.finished_at ? "Waiting for opponent" : "Your turn";
   }

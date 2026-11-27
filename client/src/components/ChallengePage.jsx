@@ -145,6 +145,9 @@ function Card({ eyebrow, title, children }) {
   );
 }
 
+const REJECT_CONFIRM =
+  "Reject this challenge? It ends for both players, no scores are shown, and it won't count toward either record.";
+
 export default function ChallengePage({
   code: rawCode,
   onRequireAuth,
@@ -202,7 +205,10 @@ export default function ChallengePage({
   // While waiting on the other player, pick up changes when the tab regains
   // focus (no websockets).
   const waiting =
-    view?.me && view.status !== 'completed' && view.status !== 'retracted';
+    view?.me &&
+    view.status !== 'completed' &&
+    view.status !== 'retracted' &&
+    view.status !== 'rejected';
   useEffect(() => {
     if (!waiting) return;
     const onFocus = () => load();
@@ -349,6 +355,16 @@ export default function ChallengePage({
             </button>
             {rulesButton}
           </div>
+          {view.canReject && (
+            <button
+              type="button"
+              className="btn btn--ghost challenge-page__retract"
+              disabled={busy}
+              onClick={() => act(challengesApi.reject, REJECT_CONFIRM)}
+            >
+              Reject challenge
+            </button>
+          )}
           {homeLink}
         </Card>
       );
@@ -376,7 +392,8 @@ export default function ChallengePage({
       content = (
         <Card eyebrow={`Challenge ${code}`} title="This challenge has ended">
           <p className="start__lead">
-            It was finished or retracted, so this code no longer works.
+            It was finished, retracted or rejected, so this code no longer
+            works.
           </p>
           <div className="btn-row">
             <button
@@ -400,6 +417,18 @@ export default function ChallengePage({
             ? 'You retracted this challenge.'
             : `${view.creator?.username} retracted this challenge.`}{' '}
           No scores are shown and the code no longer works.
+        </p>
+        {homeLink}
+      </Card>
+    );
+  } else if (view.status === 'rejected') {
+    content = (
+      <Card eyebrow={`Challenge ${code}`} title="Challenge rejected">
+        <p className="start__lead">
+          {view.role === 'opponent'
+            ? 'You rejected this challenge.'
+            : `${view.opponent?.username} rejected this challenge.`}{' '}
+          No scores are shown and it doesn't count toward either record.
         </p>
         {homeLink}
       </Card>
@@ -493,6 +522,16 @@ export default function ChallengePage({
             }
           >
             Retract challenge
+          </button>
+        )}
+        {view.canReject && (
+          <button
+            type="button"
+            className="btn btn--ghost challenge-page__retract"
+            disabled={busy}
+            onClick={() => act(challengesApi.reject, REJECT_CONFIRM)}
+          >
+            Reject challenge
           </button>
         )}
         {view.me.started && homeLink}

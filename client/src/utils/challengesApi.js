@@ -29,6 +29,7 @@ export const challengesApi = {
     request('POST', `/${enc(code)}/complete`, { words }),
   seen: (code) => request('POST', `/${enc(code)}/seen`),
   retract: (code) => request('POST', `/${enc(code)}/retract`),
+  reject: (code) => request('POST', `/${enc(code)}/reject`),
 };
 
 // Mirrors server/src/challengeLogic.js: consonants (no vowels, Y, L or Q) and

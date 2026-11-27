@@ -92,8 +92,13 @@ test("lifecycle status: waiting -> in_progress -> completed, retract wins", () =
     "completed"
   );
   assert.equal(challengeStatus({ retracted_at: "x" }, [creator]), "retracted");
+  assert.equal(
+    challengeStatus({ rejected_at: "x" }, [creator, opponent]),
+    "rejected"
+  );
   assert.ok(isEnded("completed"));
   assert.ok(isEnded("retracted"));
+  assert.ok(isEnded("rejected"));
   assert.ok(!isEnded("waiting"));
   assert.ok(!isEnded("in_progress"));
 });
@@ -139,4 +144,6 @@ test("viewer labels", () => {
   assert.equal(viewerLabel("completed", done, {}, "opponent"), "You lost");
   assert.equal(viewerLabel("completed", done, {}, "draw"), "Draw");
   assert.equal(viewerLabel("retracted", done), "Retracted");
+  assert.equal(viewerLabel("rejected", done), "Rejected");
+  assert.equal(viewerLabel("rejected", { role: "opponent" }), "You rejected");
 });

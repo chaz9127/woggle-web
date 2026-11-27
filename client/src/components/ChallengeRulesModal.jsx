@@ -26,6 +26,12 @@ export default function ChallengeRulesModal({ open, onClose }) {
           retracted challenge ends for both players and no results are shown.
         </li>
         <li>
+          If you're challenged, you can reject it any time before you start your
+          run. It ends for both players, no results are shown, and it stays in
+          both players' history without counting toward anyone's wins, losses or
+          ties.
+        </li>
+        <li>
           Challenges don't count toward your daily streak, stats or the
           leaderboard.
         </li>
