@@ -8,6 +8,9 @@ import SettingsPage from './components/SettingsPage';
 import SummaryModal from './components/SummaryModal';
 import BonusDrawer from './components/BonusDrawer';
 import StartScreen from './components/StartScreen';
+import HomeScreen from './components/HomeScreen';
+import ChallengeHome from './components/ChallengeHome';
+import ChallengePage from './components/ChallengePage';
 // import TesterModal from './components/TesterModal';
 import WhySignUpModal from './components/WhySignUpModal';
 import AuthModal from './auth/AuthModal';
@@ -18,6 +21,7 @@ import NotFound from './components/NotFound';
 import { useAuth } from './auth/AuthContext';
 import { useGame } from './hooks/useGame';
 import { useGameStats } from './hooks/useGameStats';
+import { useChallengeUnseen } from './hooks/useChallengeUnseen';
 import { useTheme } from './hooks/useTheme';
 import { todayDateString } from './utils/random';
 import { setUserType } from './utils/analytics';
@@ -48,6 +52,10 @@ export default function App() {
     clearAfterInvalid: user ? !!user.clearAfterInvalid : true,
     locked,
   });
+  const { count: unseenChallenges, refresh: refreshUnseenChallenges } =
+    useChallengeUnseen(user);
+  // A challenge run reports its clock here so the shared header can show it.
+  const [challengeRemaining, setChallengeRemaining] = useState(null);
   const {
     dateStr,
     board,
@@ -124,6 +132,14 @@ export default function App() {
   }
   const isLeaderboards = window.location.pathname.startsWith('/leaderboards');
   const isSettings = window.location.pathname.startsWith('/settings');
+  const challengeMatch = window.location.pathname.match(
+    /^\/challenge\/([^/]*)\/?$/
+  );
+  const isChallenge = !!challengeMatch;
+  const openAuth = (mode) => {
+    setAuthMode(mode);
+    setAuthOpen(true);
+  };
 
   return (
     <div className="app">
@@ -141,14 +157,26 @@ export default function App() {
         onOpenSettings={() => {
           window.location.href = '/settings';
         }}
-        remaining={remaining}
-        showTimer={!isLeaderboards && !isSettings && showTimer}
+        remaining={isChallenge ? challengeRemaining : remaining}
+        showTimer={
+          isChallenge
+            ? challengeRemaining != null
+            : !isLeaderboards && !isSettings && showTimer
+        }
+        unseenCount={unseenChallenges}
       />
       <main className="main">
         {isLeaderboards ? (
           <LeaderboardsPage />
         ) : isSettings ? (
           <SettingsPage theme={theme} onToggleTheme={toggleTheme} />
+        ) : isChallenge ? (
+          <ChallengePage
+            code={decodeURIComponent(challengeMatch[1])}
+            onRequireAuth={openAuth}
+            onTimer={setChallengeRemaining}
+            onSeen={refreshUnseenChallenges}
+          />
         ) : phase === 'countdown' ? (
           <div className="countdown">
             <span className="countdown__label">Get ready…</span>
@@ -157,24 +185,29 @@ export default function App() {
             </span>
           </div>
         ) : phase === 'idle' || phase === 'locked' ? (
-          <StartScreen
-            dateStr={dateStr}
-            phase={phase}
-            locked={locked}
-            onStart={startGame}
-            onOverride={() => {
-              setOverrideCookie(dateStr);
-              setOverrideActive(true);
-            }}
-            onSignUp={() => {
-              setAuthMode('signup');
-              setAuthOpen(true);
-            }}
-            totals={totals}
-            foundWords={foundWords}
-            board={board}
-            theme={theme}
-            stats={stats}
+          <HomeScreen
+            dailyPlayed={locked}
+            unseenCount={unseenChallenges}
+            daily={
+              <StartScreen
+                dateStr={dateStr}
+                phase={phase}
+                locked={locked}
+                onStart={startGame}
+                onOverride={() => {
+                  setOverrideCookie(dateStr);
+                  setOverrideActive(true);
+                }}
+                onSignUp={() => openAuth('signup')}
+                onOpenRules={() => setRulesOpen(true)}
+                totals={totals}
+                foundWords={foundWords}
+                board={board}
+                theme={theme}
+                stats={stats}
+              />
+            }
+            challenge={<ChallengeHome onSignIn={() => openAuth('signin')} />}
           />
         ) : (
           <GamePlay
@@ -194,7 +227,7 @@ export default function App() {
         }
       /> */}
       <WhySignUpModal
-        open={whySignUpOpen}
+        open={whySignUpOpen && !isChallenge}
         onClose={() => {
           setWhySignUpOpen(false);
           setWhySignUpDismissed(true);

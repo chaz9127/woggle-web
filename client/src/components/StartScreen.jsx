@@ -16,6 +16,7 @@ export default function StartScreen({
   onStart,
   onOverride,
   onSignUp,
+  onOpenRules,
   totals,
   foundWords,
   board,
@@ -90,13 +91,18 @@ export default function StartScreen({
                 {sharePreview}
               </pre>
             )}
-            <button
-              type="button"
-              className="btn btn--primary"
-              onClick={handleShare}
-            >
-              {shareStatus || 'Share my score'}
-            </button>
+            <div className="btn-row">
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={handleShare}
+              >
+                {shareStatus || 'Share my score'}
+              </button>
+              <button type="button" className="btn" onClick={onOpenRules}>
+                Rules
+              </button>
+            </div>
             <button
               type="button"
               className="btn btn--ghost"
@@ -113,13 +119,18 @@ export default function StartScreen({
               adjacent letters (including diagonals) to spell words of 3+
               letters. Once the timer runs out, you're done for the day.
             </p>
-            <button
-              type="button"
-              className="btn btn--primary start__play"
-              onClick={onStart}
-            >
-              Play
-            </button>
+            <div className="btn-row start__play">
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={onStart}
+              >
+                Play
+              </button>
+              <button type="button" className="btn" onClick={onOpenRules}>
+                Rules
+              </button>
+            </div>
             {!user && (
               <button
                 type="button"

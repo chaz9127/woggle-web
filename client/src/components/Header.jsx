@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { Menu, Pencil } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import FeatureTooltip from './FeatureTooltip';
+import ChallengeList from './ChallengeList';
+import { challengesApi, createAndOpenChallenge } from '../utils/challengesApi';
 import { featureTooltips } from '../config/featureTooltips';
 
 export default function Header({
@@ -13,13 +15,44 @@ export default function Header({
   onOpenSettings,
   remaining,
   showTimer,
+  unseenCount = 0,
 }) {
   const mm = String(Math.floor((remaining ?? 0) / 60)).padStart(1, '0');
   const ss = String((remaining ?? 0) % 60).padStart(2, '0');
   const low = showTimer && remaining <= 10;
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  // null = automatic (open only when there are new results); a click overrides.
+  const [challengesOpen, setChallengesOpen] = useState(null);
+  const [challengeGroups, setChallengeGroups] = useState(null);
+  const [challengeError, setChallengeError] = useState('');
+  const [creating, setCreating] = useState(false);
   const menuRef = useRef(null);
+  const unseenText = `${unseenCount} completed challenge${unseenCount === 1 ? '' : 's'} with new results`;
+  // New results open the Challenges section so the dotted entry is visible.
+  const showChallenges = challengesOpen ?? unseenCount > 0;
+
+  // Fetched each time the section is shown, so it's never stale.
+  useEffect(() => {
+    if (!menuOpen || !showChallenges || !user) return;
+    let cancelled = false;
+    challengesApi.list().then(({ ok, data }) => {
+      if (!cancelled && ok) setChallengeGroups(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [menuOpen, showChallenges, user]);
+
+  const newChallenge = async () => {
+    setCreating(true);
+    setChallengeError('');
+    const err = await createAndOpenChallenge();
+    if (err) {
+      setChallengeError(err);
+      setCreating(false);
+    }
+  };
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -71,12 +104,15 @@ export default function Header({
             id="header-menu-button"
             className="icon-btn"
             onClick={() => setMenuOpen((v) => !v)}
-            aria-label="Menu"
+            aria-label={unseenCount > 0 ? `Menu, ${unseenText}` : 'Menu'}
             aria-haspopup="menu"
             aria-expanded={menuOpen}
-            title="Menu"
+            title={unseenCount > 0 ? `Menu (${unseenText})` : 'Menu'}
           >
             <Menu size={18} aria-hidden="true" />
+            {unseenCount > 0 && (
+              <span className="dot icon-btn__dot" aria-hidden="true" />
+            )}
           </button>
           {!menuOpen && (
             <FeatureTooltip
@@ -128,6 +164,53 @@ export default function Header({
                   >
                     Stats
                   </button>
+                  <button
+                    type="button"
+                    className="header__menu-item header__menu-expander"
+                    aria-expanded={showChallenges}
+                    aria-controls="header-challenges"
+                    onClick={() => setChallengesOpen(!showChallenges)}
+                  >
+                    <span>
+                      Challenges <span className="pill">Beta</span>
+                    </span>
+                    <span className="header__menu-expander-end">
+                      {unseenCount > 0 && (
+                        <>
+                          <span className="dot" aria-hidden="true" />
+                          <span className="visually-hidden">{unseenText}</span>
+                        </>
+                      )}
+                      <span aria-hidden="true">
+                        {showChallenges ? '▴' : '▾'}
+                      </span>
+                    </span>
+                  </button>
+                  {showChallenges && (
+                    <div id="header-challenges" className="header__challenges">
+                      <button
+                        type="button"
+                        className="btn btn--primary btn--inline header__challenges-new"
+                        onClick={newChallenge}
+                        disabled={creating}
+                      >
+                        {creating ? 'Creating…' : '+ New challenge'}
+                      </button>
+                      {challengeError && (
+                        <p className="challenge-home__error">
+                          {challengeError}
+                        </p>
+                      )}
+                      {challengeGroups ? (
+                        <ChallengeList
+                          groups={challengeGroups}
+                          onOpen={() => setMenuOpen(false)}
+                        />
+                      ) : (
+                        <p className="challenge-list__empty">Loading…</p>
+                      )}
+                    </div>
+                  )}
                   {user.role === 'admin' && (
                     <a
                       href="/admin"
