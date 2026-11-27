@@ -1709,8 +1709,9 @@ a.btn {
 .challenge-list__item:hover {
   border-color: var(--muted);
 }
+/* Unseen is marked by the dot and bold text only: green/red mean win/loss. */
 .challenge-list__item--unseen {
-  border-color: var(--accent);
+  font-weight: 700;
 }
 .challenge-list__code {
   font-weight: 700;
@@ -1726,13 +1727,78 @@ a.btn {
   text-align: right;
 }
 .challenge-list__item--unseen .challenge-list__status {
-  color: var(--accent);
+  color: var(--text);
   font-weight: 600;
 }
 .challenge-list__empty {
   margin: 0;
   font-size: 13px;
   color: var(--muted);
+}
+/* Outcome colors come after --unseen so an unseen loss still reads as red;
+   the green dot alone marks it as new. The label text carries the outcome too. */
+.challenge-list__item--win {
+  border-color: var(--accent);
+  background: rgba(106, 170, 100, 0.12);
+}
+.challenge-list__item--win .challenge-list__status {
+  color: var(--accent);
+  font-weight: 600;
+}
+.challenge-list__item--loss {
+  border-color: var(--error);
+  background: rgba(211, 58, 58, 0.1);
+}
+.challenge-list__item--loss .challenge-list__status {
+  color: var(--error);
+  font-weight: 600;
+}
+.challenge-list__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+}
+.challenge-list__toggle:hover {
+  color: var(--text);
+}
+.challenge-record {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-size: 13px;
+}
+.challenge-record__label {
+  margin-right: auto;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.challenge-record__stat {
+  color: var(--muted);
+}
+.challenge-record__stat strong {
+  font-size: 16px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.challenge-record__stat--win strong {
+  color: var(--accent);
+}
+.challenge-record__stat--loss strong {
+  color: var(--error);
 }
 
 /* Header dropdown: Challenges section */

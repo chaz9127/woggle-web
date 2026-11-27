@@ -17,6 +17,8 @@ const {
   challengeStatus,
   isEnded,
   decideWinner,
+  outcomeFor,
+  tallyRecord,
   hasUnseenResult,
   viewerLabel,
 } = require("./challengeLogic");
@@ -116,6 +118,34 @@ const unseenCount = db.prepare(`
   JOIN challenges c ON c.id = p.challenge_id
   WHERE p.user_id = ? AND c.completed_at IS NOT NULL AND p.results_seen_at IS NULL
 `);
+// Every completed challenge (not just the 50 listed), for the overall record.
+// Retracted challenges never complete, so they don't count.
+const completedForRecord = db.prepare(`
+  SELECT me.role,
+         cr.score AS creator_score, cr.word_count AS creator_words,
+         op.score AS opponent_score, op.word_count AS opponent_words
+  FROM challenges c
+  JOIN challenge_players me ON me.challenge_id = c.id AND me.user_id = ?
+  JOIN challenge_players cr ON cr.challenge_id = c.id AND cr.role = 'creator'
+  JOIN challenge_players op ON op.challenge_id = c.id AND op.role = 'opponent'
+  WHERE c.completed_at IS NOT NULL
+`);
+
+function recordFor(userId) {
+  return tallyRecord(
+    completedForRecord
+      .all(userId)
+      .map((r) =>
+        outcomeFor(
+          r.role,
+          decideWinner(
+            { score: r.creator_score, word_count: r.creator_words },
+            { score: r.opponent_score, word_count: r.opponent_words }
+          )
+        )
+      )
+  );
+}
 
 // A run that was started but never submitted (closed tab, lost connection)
 // is finalized at 0 once its deadline passes, so the other player isn't left
@@ -232,6 +262,7 @@ function listItem(challenge, players, userId) {
     status,
     opponent: other ? other.username || "(deleted user)" : null,
     label: viewerLabel(status, me, other, winner),
+    outcome: winner ? outcomeFor(me.role, winner) : null,
     unseen: hasUnseenResult(challenge, me),
   };
 }
@@ -333,7 +364,7 @@ function buildChallengesRouter() {
       else if (item.status === "in_progress") groups.inProgress.push(item);
       else groups.completed.push(item);
     }
-    res.json(groups);
+    res.json({ ...groups, record: recordFor(req.user.id) });
   });
 
   // Polled by the client, so it's a single COUNT.

@@ -102,6 +102,22 @@ function decideWinner(creator, opponent) {
   return "draw";
 }
 
+// A completed challenge from one player's side.
+function outcomeFor(role, winner) {
+  if (winner === "draw") return "draw";
+  return winner === role ? "win" : "loss";
+}
+
+function tallyRecord(outcomes) {
+  const record = { wins: 0, losses: 0, draws: 0 };
+  for (const o of outcomes) {
+    if (o === "win") record.wins++;
+    else if (o === "loss") record.losses++;
+    else if (o === "draw") record.draws++;
+  }
+  return record;
+}
+
 // A participant has an unseen result once the challenge is completed and they
 // haven't opened the results yet. Retracted challenges never produce a dot.
 function hasUnseenResult(challenge, player) {
@@ -136,6 +152,8 @@ module.exports = {
   challengeStatus,
   isEnded,
   decideWinner,
+  outcomeFor,
+  tallyRecord,
   hasUnseenResult,
   viewerLabel,
 };

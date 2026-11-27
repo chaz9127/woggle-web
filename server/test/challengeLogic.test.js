@@ -12,6 +12,8 @@ const {
   challengeStatus,
   isEnded,
   decideWinner,
+  outcomeFor,
+  tallyRecord,
   hasUnseenResult,
   viewerLabel,
 } = require("../src/challengeLogic");
@@ -102,6 +104,18 @@ test("winner: score, then word count, then draw", () => {
   assert.equal(decideWinner(p(9, 5), p(10, 1)), "opponent");
   assert.equal(decideWinner(p(10, 3), p(10, 4)), "opponent");
   assert.equal(decideWinner(p(10, 4), p(10, 4)), "draw");
+});
+
+test("outcome and record from the viewer's side", () => {
+  assert.equal(outcomeFor("creator", "creator"), "win");
+  assert.equal(outcomeFor("opponent", "creator"), "loss");
+  assert.equal(outcomeFor("opponent", "draw"), "draw");
+  assert.deepEqual(tallyRecord(["win", "loss", "win", "draw", null]), {
+    wins: 2,
+    losses: 1,
+    draws: 1,
+  });
+  assert.deepEqual(tallyRecord([]), { wins: 0, losses: 0, draws: 0 });
 });
 
 test("green dot: only for completed challenges not yet viewed", () => {
