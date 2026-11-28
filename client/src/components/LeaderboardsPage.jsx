@@ -230,7 +230,7 @@ export default function LeaderboardsPage() {
                         })
                 }
               >
-                <List size={16} aria-hidden="true" /> Answer key
+                <List size={16} aria-hidden="true" /> <span>&nbsp;Answer key</span>
               </button>
               {answerKey.gated && (
                 <span className="leaderboard__words-tip" role="tooltip">

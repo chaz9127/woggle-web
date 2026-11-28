@@ -100,12 +100,28 @@ const statsTodayHigh = db.prepare(`
   ORDER BY g.score DESC, g.completed_at ASC
   LIMIT 1
 `);
+// Each player's finished challenge run is one game, like a daily game. Runs
+// that time out are finalized at 0 and still count.
+const statsChallengeGames = db.prepare(
+  "SELECT COUNT(*) AS n FROM challenge_players WHERE finished_at IS NOT NULL"
+);
+// Daily games by game_date plus finished challenge runs by the UTC day they
+// finished (finished_at is stored in UTC).
 const statsBusiestDay = db.prepare(`
-  SELECT game_date, COUNT(*) AS n
-  FROM user_games
-  WHERE completed_at IS NOT NULL
-  GROUP BY game_date
-  ORDER BY n DESC, game_date DESC
+  SELECT day AS game_date, SUM(n) AS n
+  FROM (
+    SELECT game_date AS day, COUNT(*) AS n
+    FROM user_games
+    WHERE completed_at IS NOT NULL
+    GROUP BY game_date
+    UNION ALL
+    SELECT date(finished_at) AS day, COUNT(*) AS n
+    FROM challenge_players
+    WHERE finished_at IS NOT NULL
+    GROUP BY day
+  )
+  GROUP BY day
+  ORDER BY n DESC, day DESC
   LIMIT 1
 `);
 const gamesPlayedRange = db.prepare(`
@@ -163,7 +179,7 @@ function buildAdminRouter() {
     res.json({
       totalGames: dailyGames,
       totalChallenges,
-      totalAllGames: dailyGames + totalChallenges,
+      totalAllGames: dailyGames + statsChallengeGames.get().n,
       gamesToday: statsGamesToday.get(today).n,
       totalWords: statsTotalWords.get().n,
       totalSignups: statsTotalSignups.get().n,

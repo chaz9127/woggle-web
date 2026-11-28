@@ -38,7 +38,7 @@ export default function AdminHome() {
         <StatCard
           label="Total games"
           value={(stats.totalAllGames ?? stats.totalGames).toLocaleString()}
-          sub="Daily games + challenges"
+          sub="Daily games + finished challenge games"
         />
         <StatCard
           label="Total daily games"
@@ -53,7 +53,11 @@ export default function AdminHome() {
           value={
             stats.busiestDay ? stats.busiestDay.count.toLocaleString() : '—'
           }
-          sub={stats.busiestDay ? stats.busiestDay.gameDate : 'No games yet'}
+          sub={
+            stats.busiestDay
+              ? `${stats.busiestDay.gameDate} · daily + challenges`
+              : 'No games yet'
+          }
         />
         <StatCard
           label="Games completed today"
