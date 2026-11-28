@@ -62,6 +62,7 @@ export default function AdminHome() {
         <StatCard
           label="Games completed today"
           value={(stats.gamesToday ?? 0).toLocaleString()}
+          sub="Daily games + finished challenge games"
         />
         <StatCard
           label="Unique words found"

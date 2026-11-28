@@ -105,6 +105,10 @@ const statsTodayHigh = db.prepare(`
 const statsChallengeGames = db.prepare(
   "SELECT COUNT(*) AS n FROM challenge_players WHERE finished_at IS NOT NULL"
 );
+// Finished challenge runs on one UTC day (finished_at is stored in UTC).
+const statsChallengeGamesOn = db.prepare(
+  "SELECT COUNT(*) AS n FROM challenge_players WHERE finished_at IS NOT NULL AND date(finished_at) = ?"
+);
 // Daily games by game_date plus finished challenge runs by the UTC day they
 // finished (finished_at is stored in UTC).
 const statsBusiestDay = db.prepare(`
@@ -180,7 +184,8 @@ function buildAdminRouter() {
       totalGames: dailyGames,
       totalChallenges,
       totalAllGames: dailyGames + statsChallengeGames.get().n,
-      gamesToday: statsGamesToday.get(today).n,
+      gamesToday:
+        statsGamesToday.get(today).n + statsChallengeGamesOn.get(today).n,
       totalWords: statsTotalWords.get().n,
       totalSignups: statsTotalSignups.get().n,
       lifetimeHigh: lifetime
