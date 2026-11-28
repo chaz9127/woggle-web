@@ -532,16 +532,21 @@ function buildChallengesRouter() {
         return res.status(400).json({ error: "words must be an array" });
       }
       const status = challengeStatus(challenge, players);
-      if (status === "retracted" || status === "rejected") {
+      const ended = status === "retracted" || status === "rejected";
+      const nowMs = Date.now();
+      // One run per player: a finished (or expired, via the sweep) run keeps
+      // its original result and later submissions are ignored.
+      const canFinish =
+        !!me.started_at &&
+        !me.finished_at &&
+        !isRunExpired(me.started_at, nowMs);
+      if (ended && !canFinish) {
         return respond(res, challenge.id, req.user.id, 410);
       }
       if (!me.started_at) {
         return res.status(409).json({ error: "Run not started" });
       }
-      // One run per player: a finished (or expired, via the sweep) run keeps
-      // its original result and later submissions are ignored.
-      const nowMs = Date.now();
-      if (me.finished_at || isRunExpired(me.started_at, nowMs)) {
+      if (!canFinish) {
         return respond(res, challenge.id, req.user.id);
       }
       const result = validateSubmittedWords(
@@ -557,7 +562,9 @@ function buildChallengesRouter() {
         nowMs,
         String(req.body?.localDate || "")
       );
-      respond(res, challenge.id, req.user.id);
+      // A run played to the end still counts as a game after the challenge
+      // was retracted or rejected; the challenge stays ended with no results.
+      respond(res, challenge.id, req.user.id, ended ? 410 : undefined);
     })
   );
 
